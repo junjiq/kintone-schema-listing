@@ -1,4 +1,4 @@
-# Kintone Query Table System
+# Kintone Schema Listing
 
 ## 概要
 Kintoneアプリケーションのスキーマとデータを検索・表示・エクスポートするためのモジュール化されたシステムです。
@@ -183,3 +183,4 @@ Kintoneアプリの「JavaScript/CSSでカスタマイズ」で以下の順序�
 - Kintone環境でのみ動作します
 - 大量データの取得は時間がかかる場合があります
 - CSVファイルの文字エンコーディングはUTF-8（BOM付き）です
+
