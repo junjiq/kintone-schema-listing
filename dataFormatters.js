@@ -1,0 +1,160 @@
+(() => {
+  'use strict';
+
+  /**
+   * データフォーマット関連の関数
+   * スキーマやレコードデータの整形、表示用の変換を担当
+   */
+
+  /**
+   * フィールドタイプを日本語に変換
+   */
+  const getFieldTypeLabel = (fieldType) => {
+    const typeMap = {
+      'SINGLE_LINE_TEXT': '文字列（1行）',
+      'MULTI_LINE_TEXT': '文字列（複数行）',
+      'RICH_TEXT': 'リッチエディター',
+      'NUMBER': '数値',
+      'CALC': '計算',
+      'RADIO_BUTTON': 'ラジオボタン',
+      'CHECK_BOX': 'チェックボックス',
+      'MULTI_SELECT': '複数選択',
+      'DROP_DOWN': 'ドロップダウン',
+      'DATE': '日付',
+      'TIME': '時刻',
+      'DATETIME': '日時',
+      'LINK': 'リンク',
+      'FILE': 'ファイル',
+      'USER_SELECT': 'ユーザー選択',
+      'ORGANIZATION_SELECT': '組織選択',
+      'GROUP_SELECT': 'グループ選択',
+      'LOOKUP': 'ルックアップ',
+      'REFERENCE_TABLE': '関連レコード一覧',
+      'SUBTABLE': 'テーブル',
+      'CREATOR': '作成者',
+      'CREATED_TIME': '作成日時',
+      'MODIFIER': '更新者',
+      'UPDATED_TIME': '更新日時',
+      'CATEGORY': 'カテゴリー',
+      'STATUS': 'ステータス',
+      'STATUS_ASSIGNEE': '作業者',
+      'RECORD_NUMBER': 'レコード番号'
+    };
+    return typeMap[fieldType] || fieldType;
+  };
+
+  /**
+   * スキーマを表示用に整理
+   */
+  const formatSchema = (schema) => {
+    const formattedSchema = [];
+
+    Object.keys(schema).forEach(fieldCode => {
+      const field = schema[fieldCode];
+
+      const fieldInfo = {
+        code: fieldCode,
+        label: field.label || fieldCode,
+        type: getFieldTypeLabel(field.type),
+        required: field.required ? 'はい' : 'いいえ',
+        description: field.description || '',
+        subFields: []
+      };
+
+      // サブテーブルの場合はサブフィールドも処理
+      if (field.type === 'SUBTABLE' && field.fields) {
+        Object.keys(field.fields).forEach(subFieldCode => {
+          const subField = field.fields[subFieldCode];
+          fieldInfo.subFields.push({
+            code: subFieldCode,
+            label: subField.label || subFieldCode,
+            type: getFieldTypeLabel(subField.type),
+            required: subField.required ? 'はい' : 'いいえ',
+            description: subField.description || ''
+          });
+        });
+      }
+
+      formattedSchema.push(fieldInfo);
+    });
+
+    return formattedSchema;
+  };
+
+  /**
+   * サブテーブルデータを整理
+   */
+  const formatSubtableData = (subtableValue) => {
+    console.log('formatSubtableData called with:', subtableValue);
+
+    if (!subtableValue || !Array.isArray(subtableValue)) {
+      console.log('サブテーブルデータが配列ではありません:', subtableValue);
+      return [];
+    }
+
+    const result = subtableValue.map(row => {
+      console.log('サブテーブル行データ:', row);
+      const formattedRow = {};
+      Object.keys(row).forEach(fieldCode => {
+        if (row[fieldCode] && row[fieldCode].value !== undefined) {
+          formattedRow[fieldCode] = row[fieldCode].value;
+        } else if (row[fieldCode] !== undefined) {
+          // valueプロパティがない場合は直接値を使用
+          formattedRow[fieldCode] = row[fieldCode];
+        }
+      });
+      console.log('フォーマット後の行データ:', formattedRow);
+      return formattedRow;
+    });
+
+    console.log('formatSubtableData result:', result);
+    return result;
+  };
+
+  /**
+   * レコードデータを整理
+   */
+  const formatRecordData = (records, schema) => {
+    return records.map(record => {
+      const formattedRecord = {
+        recordId: record.$id.value
+      };
+
+      Object.keys(schema).forEach(fieldCode => {
+        const field = schema[fieldCode];
+        const value = record[fieldCode];
+
+        if (value) {
+          if (field.type === 'SUBTABLE') {
+            console.log(`サブテーブルフィールド ${fieldCode} の生データ:`, value);
+            formattedRecord[fieldCode] = formatSubtableData(value.value);
+            console.log(`サブテーブルフィールド ${fieldCode} のフォーマット後:`, formattedRecord[fieldCode]);
+          } else if (field.type === 'USER_SELECT' || field.type === 'ORGANIZATION_SELECT' || field.type === 'GROUP_SELECT') {
+            formattedRecord[fieldCode] = value.value.map(item => item.name || item.code);
+          } else if (field.type === 'FILE') {
+            formattedRecord[fieldCode] = value.value.map(file => file.name);
+          } else if (field.type === 'CHECK_BOX' || field.type === 'MULTI_SELECT') {
+            formattedRecord[fieldCode] = value.value;
+          } else {
+            formattedRecord[fieldCode] = value.value;
+          }
+        } else {
+          formattedRecord[fieldCode] = null;
+        }
+      });
+
+      return formattedRecord;
+    });
+  };
+
+  // グローバル関数として公開
+  window.DataFormatters = {
+    getFieldTypeLabel,
+    formatSchema,
+    formatSubtableData,
+    formatRecordData
+  };
+
+  console.log('データフォーマット スクリプトが読み込まれました');
+
+})();
