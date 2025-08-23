@@ -31,6 +31,7 @@
       'LOOKUP': 'ルックアップ',
       'REFERENCE_TABLE': '関連レコード一覧',
       'SUBTABLE': 'テーブル',
+      'LABEL': 'ラベル',
       'CREATOR': '作成者',
       'CREATED_TIME': '作成日時',
       'MODIFIER': '更新者',
@@ -139,7 +140,12 @@
             formattedRecord[fieldCode] = value.value;
           }
         } else {
-          formattedRecord[fieldCode] = null;
+          // ラベルフィールドは値を持たないため、スキーマのラベル情報を使用
+          if (field.type === 'LABEL') {
+            formattedRecord[fieldCode] = field.label || '';
+          } else {
+            formattedRecord[fieldCode] = null;
+          }
         }
       });
 
