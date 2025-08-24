@@ -425,17 +425,16 @@
     formattedSchema.forEach(field => {
       const row = document.createElement('tr');
 
-      // フィールドコード
-      const codeCell = document.createElement('td');
-      codeCell.textContent = field.code;
-      codeCell.style.border = '1px solid #ddd';
-      codeCell.style.padding = '8px';
-      codeCell.style.fontFamily = 'monospace';
-      codeCell.style.fontSize = '12px';
-      codeCell.style.overflow = 'hidden';
-      codeCell.style.whiteSpace = 'nowrap';
-      codeCell.style.textOverflow = 'ellipsis';
-      codeCell.title = field.code; // ツールチップで全文表示
+             // フィールドコード
+       const codeCell = document.createElement('td');
+       codeCell.textContent = field.code;
+       codeCell.style.border = '1px solid #ddd';
+       codeCell.style.padding = '8px';
+       codeCell.style.fontWeight = 'bold';
+       codeCell.style.overflow = 'hidden';
+       codeCell.style.whiteSpace = 'nowrap';
+       codeCell.style.textOverflow = 'ellipsis';
+       codeCell.title = field.code; // ツールチップで全文表示
 
       // フィールド名
       const labelCell = document.createElement('td');
@@ -504,19 +503,17 @@
           const subRow = document.createElement('tr');
           subRow.style.backgroundColor = '#f9f9f9';
 
-          // サブフィールドコード
-          const subCodeCell = document.createElement('td');
-          subCodeCell.textContent = `└ ${subField.code}`;
-          subCodeCell.style.border = '1px solid #ddd';
-          subCodeCell.style.padding = '8px';
-          subCodeCell.style.paddingLeft = '20px';
-          subCodeCell.style.fontFamily = 'monospace';
-          subCodeCell.style.fontSize = '11px';
-          subCodeCell.style.color = '#666';
-          subCodeCell.style.overflow = 'hidden';
-          subCodeCell.style.whiteSpace = 'nowrap';
-          subCodeCell.style.textOverflow = 'ellipsis';
-          subCodeCell.title = subField.code;
+                     // サブフィールドコード
+           const subCodeCell = document.createElement('td');
+           subCodeCell.textContent = `└ ${subField.code}`;
+           subCodeCell.style.border = '1px solid #ddd';
+           subCodeCell.style.padding = '8px';
+           subCodeCell.style.paddingLeft = '20px';
+           subCodeCell.style.color = '#666';
+           subCodeCell.style.overflow = 'hidden';
+           subCodeCell.style.whiteSpace = 'nowrap';
+           subCodeCell.style.textOverflow = 'ellipsis';
+           subCodeCell.title = subField.code;
 
           // サブフィールド名
           const subLabelCell = document.createElement('td');
