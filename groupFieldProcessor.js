@@ -95,8 +95,8 @@
     } else if (fieldSchema.type === 'CHECK_BOX' ||
                fieldSchema.type === 'MULTI_SELECT') {
       return value.value;
-    } else if (fieldSchema.type === 'LOOKUP') {
-      // ルックアップフィールドの場合、ルックアップされた値を処理
+    } else if (fieldSchema.lookup) {
+      // ルックアップフィールドの場合（lookupプロパティが設定されている場合）、ルックアップされた値を処理
       return value.value;
     } else {
       return value.value;

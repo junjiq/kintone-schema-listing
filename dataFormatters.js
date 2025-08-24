@@ -125,8 +125,8 @@
             formattedRecord[fieldCode] = value.value.map(file => file.name);
           } else if (field.type === 'CHECK_BOX' || field.type === 'MULTI_SELECT') {
             formattedRecord[fieldCode] = value.value;
-          } else if (field.type === 'LOOKUP') {
-            // ルックアップフィールドの場合、ルックアップされた値を処理
+          } else if (field.lookup) {
+            // ルックアップフィールドの場合（lookupプロパティが設定されている場合）、ルックアップされた値を処理
             formattedRecord[fieldCode] = value.value;
           } else {
             formattedRecord[fieldCode] = value.value;

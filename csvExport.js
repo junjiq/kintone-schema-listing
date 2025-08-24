@@ -262,8 +262,8 @@
             const groupField = parentField.fields[fieldInfo.fieldCode];
             if (groupField.type === 'LABEL') {
               cellContent = groupField.label || '';
-            } else if (groupField.type === 'LOOKUP') {
-              // グループ内のルックアップフィールドの場合、ルックアップされた値を処理
+            } else if (groupField.lookup) {
+              // グループ内のルックアップフィールドの場合（lookupプロパティが設定されている場合）、ルックアップされた値を処理
               cellContent = value || '';
             }
           }
