@@ -123,13 +123,10 @@
     console.log(`グループ内フィールド数: ${groupFieldCount}`);
 
     csvLines.push([
-      '"メイン"',
-      '""',
       `"${fieldCode}"`,
       `"${field.label || ''}"`,
       `"${field.type}"`,
       `"${field.required ? 'はい' : 'いいえ'}"`,
-      `"${field.description || ''}"`,
       `"グループ内フィールド数: ${groupFieldCount}"`
     ].join(','));
 
@@ -224,13 +221,10 @@
 
 
         csvLines.push([
-          '"グループ"',
-          `"${fieldCode}"`,
           `"${groupFieldCode}"`,
           `"${groupField.label || ''}"`,
           `"${groupField.type}"`,
           `"${groupField.required ? 'はい' : 'いいえ'}"`,
-          `"${groupField.description || ''}"`,
           `"${groupOptionDetails}"`
         ].join(','));
       });

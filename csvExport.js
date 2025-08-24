@@ -45,13 +45,10 @@
 
     // CSVヘッダー
     csvLines.push([
-      'レベル',
-      '親フィールド',
       'フィールドコード',
       'フィールド名',
-      'フィールドタイプ',
+      'タイプ',
       '必須',
-      '説明',
       'オプション詳細'
     ].join(','));
 
@@ -157,13 +154,10 @@
       // サブテーブル、グループ以外のフィールド
       if (field.type !== 'SUBTABLE' && field.type !== 'GROUP') {
         csvLines.push([
-          '"メイン"',
-          '""',
           `"${fieldCode}"`,
           `"${field.label || ''}"`,
           `"${field.type}"`,
           `"${field.required ? 'はい' : 'いいえ'}"`,
-          `"${field.description || ''}"`,
           `"${optionDetails}"`
         ].join(','));
       } else if (field.type === 'GROUP') {

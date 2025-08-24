@@ -106,13 +106,10 @@
     // サブテーブルフィールド自体
     const subFieldCount = Object.keys(field.fields || {}).length;
     csvLines.push([
-      '"メイン"',
-      '""',
       `"${fieldCode}"`,
       `"${field.label || ''}"`,
       `"${field.type}"`,
       `"${field.required ? 'はい' : 'いいえ'}"`,
-      `"${field.description || ''}"`,
       `"サブフィールド数: ${subFieldCount}"`
     ].join(','));
 
@@ -205,13 +202,10 @@
 
 
         csvLines.push([
-          '"サブテーブル"',
-          `"${fieldCode}"`,
           `"${subFieldCode}"`,
           `"${subField.label || ''}"`,
           `"${subField.type}"`,
           `"${subField.required ? 'はい' : 'いいえ'}"`,
-          `"${subField.description || ''}"`,
           `"${subOptionDetails}"`
         ].join(','));
       });

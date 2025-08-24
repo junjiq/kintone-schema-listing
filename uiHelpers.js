@@ -365,7 +365,6 @@
       { text: 'フィールド名', width: '250px' },
       { text: 'タイプ', width: '150px' },
       { text: '必須', width: '80px' },
-      { text: '説明', width: '250px' },
       { text: 'オプション詳細', width: 'auto' }
     ];
 
@@ -435,15 +434,7 @@
       requiredCell.style.textAlign = 'center';
       requiredCell.style.overflow = 'hidden';
 
-      // 説明
-      const descCell = document.createElement('td');
-      descCell.textContent = field.description;
-      descCell.style.border = '1px solid #ddd';
-      descCell.style.padding = '8px';
-      descCell.style.fontSize = '12px';
-      descCell.style.wordWrap = 'break-word';
-      descCell.style.overflow = 'hidden';
-      descCell.title = field.description; // ツールチップで全文表示
+
 
       // オプション詳細
       const optionCell = document.createElement('td');
@@ -461,7 +452,6 @@
       row.appendChild(labelCell);
       row.appendChild(typeCell);
       row.appendChild(requiredCell);
-      row.appendChild(descCell);
       row.appendChild(optionCell);
 
       table.appendChild(row);
@@ -517,16 +507,7 @@
           subRequiredCell.style.textAlign = 'center';
           subRequiredCell.style.fontSize = '12px';
 
-          // サブ説明
-          const subDescCell = document.createElement('td');
-          subDescCell.textContent = subField.description;
-          subDescCell.style.border = '1px solid #ddd';
-          subDescCell.style.padding = '8px';
-          subDescCell.style.fontSize = '11px';
-          subDescCell.style.color = '#666';
-          subDescCell.style.wordWrap = 'break-word';
-          subDescCell.style.overflow = 'hidden';
-          subDescCell.title = subField.description;
+
 
           // サブオプション詳細
           const subOptionCell = document.createElement('td');
@@ -544,7 +525,6 @@
           subRow.appendChild(subLabelCell);
           subRow.appendChild(subTypeCell);
           subRow.appendChild(subRequiredCell);
-          subRow.appendChild(subDescCell);
           subRow.appendChild(subOptionCell);
 
           table.appendChild(subRow);
