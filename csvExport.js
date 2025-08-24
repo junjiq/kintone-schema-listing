@@ -111,29 +111,29 @@
         }
         optionDetails = details.length > 0 ? details.join('; ') : '関連レコード一覧';
       }
-      // ルックアップフィールドの場合
-      else if (field.type === 'LOOKUP') {
+      // ルックアップフィールドの場合（lookupプロパティが設定されている場合）
+      else if (field.lookup) {
         const details = [];
-        if (field.lookup && field.lookup.relatedApp) {
+        if (field.lookup.relatedApp) {
           const appDisplayName = getAppDisplayName(field.lookup.relatedApp.app);
           details.push(`参照アプリ: ${appDisplayName}`);
         }
-        if (field.lookup && field.lookup.relatedKeyField) {
+        if (field.lookup.relatedKeyField) {
           details.push(`参照キー: ${field.lookup.relatedKeyField}`);
         }
-        if (field.lookup && field.lookup.fieldMappings) {
+        if (field.lookup.fieldMappings) {
           const mappings = field.lookup.fieldMappings.map(mapping =>
             `${mapping.field}→${mapping.relatedField}`
           );
           details.push(`フィールドマッピング: ${mappings.join(', ')}`);
         }
-        if (field.lookup && field.lookup.lookupPickerFields) {
+        if (field.lookup.lookupPickerFields) {
           details.push(`検索対象: ${field.lookup.lookupPickerFields.join(', ')}`);
         }
-        if (field.lookup && field.lookup.filterCond) {
+        if (field.lookup.filterCond) {
           details.push(`絞り込み: ${field.lookup.filterCond}`);
         }
-        if (field.lookup && field.lookup.sort) {
+        if (field.lookup.sort) {
           const sortInfo = field.lookup.sort;
           details.push(`ソート: ${sortInfo.field} (${sortInfo.order})`);
         }
@@ -152,38 +152,7 @@
         }
       }
 
-      // すべてのフィールドタイプでlookupプロパティをチェック
-      if (field.lookup && field.type !== 'LOOKUP') {
-        const lookupDetails = [];
-        if (field.lookup.relatedApp) {
-          const appDisplayName = getAppDisplayName(field.lookup.relatedApp.app);
-          lookupDetails.push(`参照アプリ: ${appDisplayName}`);
-        }
-        if (field.lookup.relatedKeyField) {
-          lookupDetails.push(`参照キー: ${field.lookup.relatedKeyField}`);
-        }
-        if (field.lookup.fieldMappings) {
-          const mappings = field.lookup.fieldMappings.map(mapping =>
-            `${mapping.field}→${mapping.relatedField}`
-          );
-          lookupDetails.push(`フィールドマッピング: ${mappings.join(', ')}`);
-        }
-        if (field.lookup.lookupPickerFields) {
-          lookupDetails.push(`検索対象: ${field.lookup.lookupPickerFields.join(', ')}`);
-        }
-        if (field.lookup.filterCond) {
-          lookupDetails.push(`絞り込み: ${field.lookup.filterCond}`);
-        }
-        if (field.lookup.sort) {
-          const sortInfo = field.lookup.sort;
-          lookupDetails.push(`ソート: ${sortInfo.field} (${sortInfo.order})`);
-        }
 
-        if (lookupDetails.length > 0) {
-          const lookupInfo = `[ルックアップ設定] ${lookupDetails.join('; ')}`;
-          optionDetails = optionDetails ? `${optionDetails}; ${lookupInfo}` : lookupInfo;
-        }
-      }
 
       // サブテーブル、グループ以外のフィールド
       if (field.type !== 'SUBTABLE' && field.type !== 'GROUP') {
