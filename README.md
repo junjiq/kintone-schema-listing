@@ -7,10 +7,12 @@ Kintoneアプリケーションのスキーマとデータを検索・表示・�
 
 ### 必須ファイル（以下の順序で読み込む）
 1. **kintoneApi.js** - Kintone API関連の機能
-2. **dataFormatters.js** - データフォーマット機能
-3. **csvExport.js** - CSV出力機能
-4. **uiHelpers.js** - UI関連のヘルパー機能
-5. **queryTable-main.js** - メイン機能（統合）
+2. **groupFieldProcessor.js** - グループフィールド処理機能
+3. **subtableFieldProcessor.js** - サブテーブルフィールド処理機能
+4. **dataFormatters.js** - データフォーマット機能
+5. **csvExport.js** - CSV出力機能
+6. **uiHelpers.js** - UI関連のヘルパー機能
+7. **queryTable-main.js** - メイン機能（統合）
 
 ### オプションファイル
 - **subtableDisplay.js** - サブテーブル表示機能
@@ -35,10 +37,49 @@ window.KintoneAPI = {
 }
 ```
 
-### 2. dataFormatters.js
+### 2. groupFieldProcessor.js
+- グループフィールドのスキーマ処理
+- グループフィールドのレコードデータ処理
+- CSV出力用のグループフィールド処理
+- グループフィールドの存在チェック・カウント機能
+
+**公開関数:**
+```javascript
+window.GroupFieldProcessor = {
+  processGroupSchema,
+  processGroupRecordData,
+  formatGroupFieldValue,
+  processGroupSchemaForCSV,
+  getGroupHeadersForCSV,
+  getGroupValueForCSV,
+  hasGroupFields,
+  countGroupFields
+}
+```
+
+### 3. subtableFieldProcessor.js
+- サブテーブルフィールドのスキーマ処理
+- サブテーブルデータの整理とフォーマット
+- CSV出力用のサブテーブル処理
+- サブテーブルフィールドの存在チェック・カウント機能
+
+**公開関数:**
+```javascript
+window.SubtableFieldProcessor = {
+  processSubtableSchema,
+  formatSubtableData,
+  processSubtableRecordData,
+  processSubtableSchemaForCSV,
+  processSubtableRecordsForCSV,
+  hasSubtableFields,
+  countSubtableFields,
+  countSubtableRows
+}
+```
+
+### 4. dataFormatters.js
 - フィールドタイプの日本語変換
 - スキーマの表示用フォーマット
-- サブテーブルデータの整理
 - レコードデータの整理
 
 **公開関数:**
@@ -46,12 +87,11 @@ window.KintoneAPI = {
 window.DataFormatters = {
   getFieldTypeLabel,
   formatSchema,
-  formatSubtableData,
   formatRecordData
 }
 ```
 
-### 3. csvExport.js
+### 5. csvExport.js
 - スキーマのCSV変換・ダウンロード
 - レコードデータのCSV変換・ダウンロード
 - CSVエクスポートボタンの追加
@@ -67,7 +107,7 @@ window.CSVExport = {
 }
 ```
 
-### 4. uiHelpers.js
+### 6. uiHelpers.js
 - メッセージ表示機能
 - アプリ一覧表示UI
 - スキーマテーブル表示
@@ -83,7 +123,7 @@ window.UIHelpers = {
 }
 ```
 
-### 5. queryTable-main.js
+### 7. queryTable-main.js
 - メイン統合機能
 - 検索UI作成
 - 依存関係チェック

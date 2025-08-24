@@ -31,6 +31,7 @@
       'LOOKUP': 'ルックアップ',
       'REFERENCE_TABLE': '関連レコード一覧',
       'SUBTABLE': 'テーブル',
+      'GROUP': 'グループ',
       'LABEL': 'ラベル',
       'CREATOR': '作成者',
       'CREATED_TIME': '作成日時',
@@ -64,52 +65,18 @@
 
       // サブテーブルの場合はサブフィールドも処理
       if (field.type === 'SUBTABLE' && field.fields) {
-        Object.keys(field.fields).forEach(subFieldCode => {
-          const subField = field.fields[subFieldCode];
-          fieldInfo.subFields.push({
-            code: subFieldCode,
-            label: subField.label || subFieldCode,
-            type: getFieldTypeLabel(subField.type),
-            required: subField.required ? 'はい' : 'いいえ',
-            description: subField.description || ''
-          });
-        });
+        fieldInfo.subFields = SubtableFieldProcessor.processSubtableSchema(field, fieldCode, getFieldTypeLabel);
+      }
+
+      // グループの場合はグループ内のフィールドも処理
+      if (field.type === 'GROUP' && field.fields) {
+        fieldInfo.subFields = GroupFieldProcessor.processGroupSchema(field, fieldCode, getFieldTypeLabel);
       }
 
       formattedSchema.push(fieldInfo);
     });
 
     return formattedSchema;
-  };
-
-  /**
-   * サブテーブルデータを整理
-   */
-  const formatSubtableData = (subtableValue) => {
-    console.log('formatSubtableData called with:', subtableValue);
-
-    if (!subtableValue || !Array.isArray(subtableValue)) {
-      console.log('サブテーブルデータが配列ではありません:', subtableValue);
-      return [];
-    }
-
-    const result = subtableValue.map(row => {
-      console.log('サブテーブル行データ:', row);
-      const formattedRow = {};
-      Object.keys(row).forEach(fieldCode => {
-        if (row[fieldCode] && row[fieldCode].value !== undefined) {
-          formattedRow[fieldCode] = row[fieldCode].value;
-        } else if (row[fieldCode] !== undefined) {
-          // valueプロパティがない場合は直接値を使用
-          formattedRow[fieldCode] = row[fieldCode];
-        }
-      });
-      console.log('フォーマット後の行データ:', formattedRow);
-      return formattedRow;
-    });
-
-    console.log('formatSubtableData result:', result);
-    return result;
   };
 
   /**
@@ -127,9 +94,10 @@
 
         if (value) {
           if (field.type === 'SUBTABLE') {
-            console.log(`サブテーブルフィールド ${fieldCode} の生データ:`, value);
-            formattedRecord[fieldCode] = formatSubtableData(value.value);
-            console.log(`サブテーブルフィールド ${fieldCode} のフォーマット後:`, formattedRecord[fieldCode]);
+            formattedRecord[fieldCode] = SubtableFieldProcessor.processSubtableRecordData(value, fieldCode);
+          } else if (field.type === 'GROUP') {
+            // グループフィールドの場合、グループ内の各フィールドの値を処理
+            formattedRecord[fieldCode] = GroupFieldProcessor.processGroupRecordData(record, field, fieldCode);
           } else if (field.type === 'USER_SELECT' || field.type === 'ORGANIZATION_SELECT' || field.type === 'GROUP_SELECT') {
             formattedRecord[fieldCode] = value.value.map(item => item.name || item.code);
           } else if (field.type === 'FILE') {
@@ -143,6 +111,9 @@
           // ラベルフィールドは値を持たないため、スキーマのラベル情報を使用
           if (field.type === 'LABEL') {
             formattedRecord[fieldCode] = field.label || '';
+          } else if (field.type === 'GROUP') {
+            // グループフィールドの値がない場合でも、グループ内フィールドの値を処理
+            formattedRecord[fieldCode] = GroupFieldProcessor.processGroupRecordData(record, field, fieldCode);
           } else {
             formattedRecord[fieldCode] = null;
           }
@@ -157,7 +128,6 @@
   window.DataFormatters = {
     getFieldTypeLabel,
     formatSchema,
-    formatSubtableData,
     formatRecordData
   };
 

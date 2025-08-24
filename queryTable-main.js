@@ -10,12 +10,14 @@
    * - dataFormatters.js (必須)
    * - csvExport.js (必須)
    * - uiHelpers.js (必須)
+   * - groupFieldProcessor.js (必須)
+   * - subtableFieldProcessor.js (必須)
    * - subtableDisplay.js (オプション)
    */
 
   // 依存関係の確認
   const checkDependencies = () => {
-    const requiredModules = ['KintoneAPI', 'DataFormatters', 'CSVExport', 'UIHelpers'];
+    const requiredModules = ['KintoneAPI', 'DataFormatters', 'CSVExport', 'UIHelpers', 'GroupFieldProcessor', 'SubtableFieldProcessor'];
     const missingModules = [];
 
     requiredModules.forEach(moduleName => {

@@ -62,8 +62,8 @@
         }
       }
 
-      // サブテーブル以外のフィールド
-      if (field.type !== 'SUBTABLE') {
+      // サブテーブル、グループ以外のフィールド
+      if (field.type !== 'SUBTABLE' && field.type !== 'GROUP') {
         csvLines.push([
           '"メイン"',
           '""',
@@ -74,49 +74,14 @@
           `"${field.description || ''}"`,
           `"${optionDetails}"`
         ].join(','));
+      } else if (field.type === 'GROUP') {
+        // グループフィールドの場合
+        const groupLines = GroupFieldProcessor.processGroupSchemaForCSV(field, fieldCode);
+        csvLines.push(...groupLines);
       } else {
         // サブテーブルフィールドの場合
-        const subFieldCount = Object.keys(field.fields || {}).length;
-        csvLines.push([
-          '"メイン"',
-          '""',
-          `"${fieldCode}"`,
-          `"${field.label || ''}"`,
-          `"${field.type}"`,
-          `"${field.required ? 'はい' : 'いいえ'}"`,
-          `"${field.description || ''}"`,
-          `"サブフィールド数: ${subFieldCount}"`
-        ].join(','));
-
-        // サブテーブル内のフィールドを処理
-        if (field.fields) {
-          Object.keys(field.fields).forEach(subFieldCode => {
-            const subField = field.fields[subFieldCode];
-
-            // サブフィールドのオプション詳細
-            let subOptionDetails = '';
-            if (subField.options) {
-              if (subField.type === 'DROP_DOWN' || subField.type === 'RADIO_BUTTON' ||
-                  subField.type === 'CHECK_BOX' || subField.type === 'MULTI_SELECT') {
-                const subChoices = Object.keys(subField.options).map(key => `${key}:${subField.options[key].label || subField.options[key]}`);
-                subOptionDetails = subChoices.join('; ');
-              } else {
-                subOptionDetails = Object.keys(subField.options).map(key => `${key}=${JSON.stringify(subField.options[key])}`).join('; ');
-              }
-            }
-
-            csvLines.push([
-              '"サブテーブル"',
-              `"${fieldCode}"`,
-              `"${subFieldCode}"`,
-              `"${subField.label || ''}"`,
-              `"${subField.type}"`,
-              `"${subField.required ? 'はい' : 'いいえ'}"`,
-              `"${subField.description || ''}"`,
-              `"${subOptionDetails}"`
-            ].join(','));
-          });
-        }
+        const subtableLines = SubtableFieldProcessor.processSubtableSchemaForCSV(field, fieldCode);
+        csvLines.push(...subtableLines);
       }
     });
 
@@ -137,64 +102,11 @@
     csvSections.push(mainCSV);
 
     // 各サブテーブルのCSV
-    Object.keys(schema).forEach(fieldCode => {
-      const field = schema[fieldCode];
-      if (field.type === 'SUBTABLE' && field.fields) {
-        csvSections.push(''); // 空行
-        csvSections.push(`=== サブテーブル: ${field.label} (${fieldCode}) ===`);
-
-        // サブテーブルのヘッダー
-        const subHeaders = ['親レコードID', '親レコード番号'];
-        const subFieldCodes = [];
-
-        Object.keys(field.fields).forEach(subFieldCode => {
-          const subField = field.fields[subFieldCode];
-          subHeaders.push(`${subField.label}(${subFieldCode})`);
-          subFieldCodes.push(subFieldCode);
-        });
-
-        const subCSVLines = [];
-        subCSVLines.push(subHeaders.map(h => `"${h}"`).join(','));
-
-        // サブテーブルのデータ行
-        records.forEach(record => {
-          const subtableData = record[fieldCode];
-          if (subtableData && Array.isArray(subtableData) && subtableData.length > 0) {
-            subtableData.forEach((subRow, subRowIndex) => {
-              const row = [
-                `"${record.recordId}"`,
-                `"#${records.indexOf(record) + 1}"`
-              ];
-
-              subFieldCodes.forEach(subFieldCode => {
-                let cellContent = '';
-                const subValue = subRow[subFieldCode];
-
-                if (subValue !== null && subValue !== undefined && subValue !== '') {
-                  if (Array.isArray(subValue)) {
-                    cellContent = subValue.join(', ');
-                  } else {
-                    cellContent = String(subValue);
-                  }
-                }
-
-                // CSVエスケープ処理
-                cellContent = cellContent.replace(/"/g, '""');
-                row.push(`"${cellContent}"`);
-              });
-
-              subCSVLines.push(row.join(','));
-            });
-          }
-        });
-
-        // データがない場合のメッセージ
-        if (subCSVLines.length === 1) {
-          subCSVLines.push('"","","サブテーブルデータがありません"');
-        }
-
-        csvSections.push(subCSVLines.join('\n'));
-      }
+    const subtableSections = SubtableFieldProcessor.processSubtableRecordsForCSV(records, schema);
+    subtableSections.forEach(section => {
+      csvSections.push(''); // 空行
+      csvSections.push(section.title);
+      csvSections.push(section.content);
     });
 
     return csvSections.join('\n');
@@ -210,15 +122,22 @@
 
     const csvLines = [];
 
-    // ヘッダー行を作成（レコードIDと通常フィールドのみ）
+    // ヘッダー行を作成（レコードIDと通常フィールド、グループ内フィールドも含む）
     const headers = ['レコードID'];
     const fieldCodes = [];
 
     Object.keys(schema).forEach(fieldCode => {
       const field = schema[fieldCode];
-      if (!['SPACER', 'HR', 'LABEL', 'GROUP', 'SUBTABLE'].includes(field.type)) {
-        headers.push(`${field.label}(${fieldCode})`);
-        fieldCodes.push(fieldCode);
+      if (!['SPACER', 'HR', 'LABEL', 'SUBTABLE'].includes(field.type)) {
+        if (field.type === 'GROUP' && field.fields) {
+          // グループフィールドの場合、グループ内の各フィールドをヘッダーに追加
+          const groupHeaderInfo = GroupFieldProcessor.getGroupHeadersForCSV(field, fieldCode);
+          headers.push(...groupHeaderInfo.headers);
+          fieldCodes.push(...groupHeaderInfo.fieldCodes);
+        } else {
+          headers.push(`${field.label}(${fieldCode})`);
+          fieldCodes.push({ type: 'normal', fieldCode: fieldCode });
+        }
       }
     });
 
@@ -228,9 +147,17 @@
     records.forEach(record => {
       const row = [`"${record.recordId}"`];
 
-      fieldCodes.forEach(fieldCode => {
-        const value = record[fieldCode];
+      fieldCodes.forEach(fieldInfo => {
+        let value;
         let cellContent = '';
+
+        if (fieldInfo.type === 'group') {
+          // グループ内フィールドの場合
+          value = GroupFieldProcessor.getGroupValueForCSV(record, fieldInfo);
+        } else {
+          // 通常フィールドの場合
+          value = record[fieldInfo.fieldCode];
+        }
 
         if (value !== null && value !== undefined && value !== '') {
           if (Array.isArray(value)) {
@@ -297,8 +224,9 @@
     // スキーマ情報の概要を表示
     const summaryText = document.createElement('p');
     const totalFields = Object.keys(schema).length;
-    const subtableFields = Object.keys(schema).filter(key => schema[key].type === 'SUBTABLE').length;
-    summaryText.textContent = `総フィールド数: ${totalFields} (サブテーブル: ${subtableFields})`;
+    const subtableFields = SubtableFieldProcessor.countSubtableFields(schema);
+    const groupFields = GroupFieldProcessor.countGroupFields(schema);
+    summaryText.textContent = `総フィールド数: ${totalFields} (サブテーブル: ${subtableFields}, グループ: ${groupFields})`;
     summaryText.style.margin = '10px 0 0 0';
     summaryText.style.fontSize = '12px';
     summaryText.style.color = '#666';
@@ -386,10 +314,12 @@
 
     // レコード情報の概要を表示
     const summaryText = document.createElement('p');
-    const subtableCount = Object.keys(schema).filter(key => schema[key].type === 'SUBTABLE').length;
+    const subtableCount = SubtableFieldProcessor.countSubtableFields(schema);
+    const groupCount = GroupFieldProcessor.countGroupFields(schema);
     summaryText.innerHTML = `レコード件数: ${records.length}<br>` +
                           `サブテーブル数: ${subtableCount}<br>` +
-                          `<small>• メインデータ: レコードの基本情報のみ<br>` +
+                          `グループ数: ${groupCount}<br>` +
+                          `<small>• メインデータ: レコードの基本情報（グループ内フィールド含む）<br>` +
                           `• 全データ: サブテーブルも別セクションとして含む</small>`;
     summaryText.style.margin = '10px 0 0 0';
     summaryText.style.fontSize = '12px';
