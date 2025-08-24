@@ -83,6 +83,7 @@
       table.style.borderCollapse = 'collapse';
       table.style.border = '1px solid #ddd';
       table.style.fontSize = '12px';
+      table.style.tableLayout = 'fixed'; // リサイズを有効化
 
       // サブテーブルのフィールド情報を取得
       const subFields = subtableField.fields || {};
@@ -178,6 +179,14 @@
       });
 
       subtableSection.appendChild(table);
+
+      // リサイズ機能を有効化（UIHelpersのmakeTableResizable関数を使用）
+      if (typeof window.UIHelpers !== 'undefined' && typeof window.UIHelpers.makeTableResizable === 'function') {
+        window.UIHelpers.makeTableResizable(table);
+        console.log(`サブテーブル ${subtableFieldCode} にリサイズ機能を適用しました`);
+      } else {
+        console.warn('UIHelpers.makeTableResizable が利用できません。uiHelpers.js を先に読み込んでください。');
+      }
 
       // 統計情報を追加
       const statsDiv = document.createElement('div');
