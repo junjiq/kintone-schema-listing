@@ -356,6 +356,13 @@
     checkDependencies
   };
 
+  // アプリ名キャッシュを初期化
+  if (window.UIHelpers && window.UIHelpers.updateAppNameCache) {
+    window.UIHelpers.updateAppNameCache().catch(error => {
+      console.warn('アプリ名キャッシュの初期化に失敗:', error);
+    });
+  }
+
   console.log('メインクエリテーブル スクリプトが読み込まれました');
 
 })();

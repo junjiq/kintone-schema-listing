@@ -6,6 +6,34 @@
    * メッセージ表示、アプリ一覧表示、テーブル表示などのUI機能を担当
    */
 
+  // アプリ名キャッシュ
+  let appNameCache = {};
+
+  /**
+   * アプリ名をキャッシュから取得、なければ「アプリID: [ID]」を返す
+   */
+  const getAppDisplayName = (appId) => {
+    if (appNameCache[appId]) {
+      return `${appNameCache[appId]} (${appId})`;
+    }
+    return `アプリID: ${appId}`;
+  };
+
+  /**
+   * アプリ名キャッシュを更新
+   */
+  const updateAppNameCache = async () => {
+    try {
+      const apps = await KintoneAPI.getAllAppsInSpace();
+      apps.forEach(app => {
+        appNameCache[app.appId] = app.name;
+      });
+      console.log('アプリ名キャッシュを更新しました:', appNameCache);
+    } catch (error) {
+      console.warn('アプリ名キャッシュの更新に失敗:', error);
+    }
+  };
+
   /**
    * テーブルカラムのリサイズ機能を追加
    */
@@ -82,7 +110,8 @@
     else if (fieldType === 'REFERENCE_TABLE') {
       const details = [];
       if (field.referenceTable && field.referenceTable.relatedApp) {
-        details.push(`関連アプリ: ${field.referenceTable.relatedApp.app}`);
+        const appDisplayName = getAppDisplayName(field.referenceTable.relatedApp.app);
+        details.push(`関連アプリ: ${appDisplayName}`);
       }
       if (field.referenceTable && field.referenceTable.condition) {
         details.push(`条件: ${field.referenceTable.condition}`);
@@ -104,7 +133,8 @@
     else if (fieldType === 'LOOKUP') {
       const details = [];
       if (field.lookup && field.lookup.relatedApp) {
-        details.push(`参照アプリ: ${field.lookup.relatedApp.app}`);
+        const appDisplayName = getAppDisplayName(field.lookup.relatedApp.app);
+        details.push(`参照アプリ: ${appDisplayName}`);
       }
       if (field.lookup && field.lookup.relatedKeyField) {
         details.push(`参照キー: ${field.lookup.relatedKeyField}`);
@@ -645,7 +675,9 @@
     displayAppList,
     displaySchemaTable,
     displayRecordTable,
-    makeTableResizable
+    makeTableResizable,
+    updateAppNameCache,
+    appNameCache // キャッシュも公開
   };
 
   console.log('UI ヘルパー スクリプトが読み込まれました');

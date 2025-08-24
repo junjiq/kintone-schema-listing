@@ -48,6 +48,20 @@
   };
 
   /**
+   * アプリIDからアプリ名を取得
+   */
+  const getAppNameById = async (appId) => {
+    try {
+      const apps = await getAllAppsInSpace();
+      const targetApp = apps.find(app => app.appId === appId);
+      return targetApp ? targetApp.name : null;
+    } catch (error) {
+      console.error('アプリ名取得エラー:', error);
+      return null;
+    }
+  };
+
+  /**
    * アプリのフォーム情報（スキーマ）を取得
    */
   const getAppSchema = async (appId) => {
@@ -84,6 +98,7 @@
     getCurrentAppInfo,
     getAllAppsInSpace,
     getAppIdByName,
+    getAppNameById,
     getAppSchema,
     getRecords
   };

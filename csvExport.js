@@ -7,6 +7,17 @@
    */
 
   /**
+   * アプリ名をキャッシュから取得、なければ「アプリID: [ID]」を返す
+   */
+  const getAppDisplayName = (appId) => {
+    // UIHelpersのキャッシュを参照
+    if (window.UIHelpers && window.UIHelpers.appNameCache && window.UIHelpers.appNameCache[appId]) {
+      return `${window.UIHelpers.appNameCache[appId]} (${appId})`;
+    }
+    return `アプリID: ${appId}`;
+  };
+
+  /**
    * CSVファイルとしてダウンロード
    */
   const downloadCSV = (csvContent, filename) => {
@@ -63,7 +74,8 @@
       else if (field.type === 'REFERENCE_TABLE') {
         const details = [];
         if (field.referenceTable && field.referenceTable.relatedApp) {
-          details.push(`関連アプリ: ${field.referenceTable.relatedApp.app}`);
+          const appDisplayName = getAppDisplayName(field.referenceTable.relatedApp.app);
+          details.push(`関連アプリ: ${appDisplayName}`);
         }
         if (field.referenceTable && field.referenceTable.condition) {
           details.push(`条件: ${field.referenceTable.condition}`);
@@ -85,7 +97,8 @@
       else if (field.type === 'LOOKUP') {
         const details = [];
         if (field.lookup && field.lookup.relatedApp) {
-          details.push(`参照アプリ: ${field.lookup.relatedApp.app}`);
+          const appDisplayName = getAppDisplayName(field.lookup.relatedApp.app);
+          details.push(`参照アプリ: ${appDisplayName}`);
         }
         if (field.lookup && field.lookup.relatedKeyField) {
           details.push(`参照キー: ${field.lookup.relatedKeyField}`);

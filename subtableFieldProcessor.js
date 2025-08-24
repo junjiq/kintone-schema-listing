@@ -7,6 +7,17 @@
    */
 
   /**
+   * アプリ名をキャッシュから取得、なければ「アプリID: [ID]」を返す
+   */
+  const getAppDisplayName = (appId) => {
+    // UIHelpersのキャッシュを参照
+    if (window.UIHelpers && window.UIHelpers.appNameCache && window.UIHelpers.appNameCache[appId]) {
+      return `${window.UIHelpers.appNameCache[appId]} (${appId})`;
+    }
+    return `アプリID: ${appId}`;
+  };
+
+  /**
    * サブテーブルフィールドのスキーマを処理
    * @param {Object} field - サブテーブルフィールドのスキーマ
    * @param {string} fieldCode - フィールドコード
@@ -124,7 +135,8 @@
         else if (subField.type === 'REFERENCE_TABLE') {
           const details = [];
           if (subField.referenceTable && subField.referenceTable.relatedApp) {
-            details.push(`関連アプリ: ${subField.referenceTable.relatedApp.app}`);
+            const appDisplayName = getAppDisplayName(subField.referenceTable.relatedApp.app);
+            details.push(`関連アプリ: ${appDisplayName}`);
           }
           if (subField.referenceTable && subField.referenceTable.condition) {
             details.push(`条件: ${subField.referenceTable.condition}`);
@@ -146,7 +158,8 @@
         else if (subField.type === 'LOOKUP') {
           const details = [];
           if (subField.lookup && subField.lookup.relatedApp) {
-            details.push(`参照アプリ: ${subField.lookup.relatedApp.app}`);
+            const appDisplayName = getAppDisplayName(subField.lookup.relatedApp.app);
+            details.push(`参照アプリ: ${appDisplayName}`);
           }
           if (subField.lookup && subField.lookup.relatedKeyField) {
             details.push(`参照キー: ${subField.lookup.relatedKeyField}`);
