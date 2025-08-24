@@ -133,7 +133,7 @@
       }
       optionDetails = details.length > 0 ? details.join('; ') : '関連レコード一覧';
     }
-    // ルックアップフィールドの場合
+    // ルックアップフィールドの場合（フィールドタイプがLOOKUPの場合）
     else if (fieldType === 'LOOKUP') {
       const details = [];
       if (field.lookup && field.lookup.relatedApp) {
@@ -183,6 +183,39 @@
         // その他のオプション
         optionDetails = Object.keys(field.options).map(key =>
           `${key}=${JSON.stringify(field.options[key])}`).join('; ');
+      }
+    }
+
+    // すべてのフィールドタイプでlookupプロパティをチェック
+    if (field.lookup && fieldType !== 'LOOKUP') {
+      const lookupDetails = [];
+      if (field.lookup.relatedApp) {
+        const appDisplayName = getAppDisplayName(field.lookup.relatedApp.app);
+        lookupDetails.push(`参照アプリ: ${appDisplayName}`);
+      }
+      if (field.lookup.relatedKeyField) {
+        lookupDetails.push(`参照キー: ${field.lookup.relatedKeyField}`);
+      }
+      if (field.lookup.fieldMappings) {
+        const mappings = field.lookup.fieldMappings.map(mapping =>
+          `${mapping.field}→${mapping.relatedField}`
+        );
+        lookupDetails.push(`フィールドマッピング: ${mappings.join(', ')}`);
+      }
+      if (field.lookup.lookupPickerFields) {
+        lookupDetails.push(`検索対象: ${field.lookup.lookupPickerFields.join(', ')}`);
+      }
+      if (field.lookup.filterCond) {
+        lookupDetails.push(`絞り込み: ${field.lookup.filterCond}`);
+      }
+      if (field.lookup.sort) {
+        const sortInfo = field.lookup.sort;
+        lookupDetails.push(`ソート: ${sortInfo.field} (${sortInfo.order})`);
+      }
+
+      if (lookupDetails.length > 0) {
+        const lookupInfo = `[ルックアップ設定] ${lookupDetails.join('; ')}`;
+        optionDetails = optionDetails ? `${optionDetails}; ${lookupInfo}` : lookupInfo;
       }
     }
 

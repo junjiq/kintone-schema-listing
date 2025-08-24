@@ -202,6 +202,39 @@
           }
         }
 
+        // すべてのフィールドタイプでlookupプロパティをチェック
+        if (subField.lookup && subField.type !== 'LOOKUP') {
+          const lookupDetails = [];
+          if (subField.lookup.relatedApp) {
+            const appDisplayName = getAppDisplayName(subField.lookup.relatedApp.app);
+            lookupDetails.push(`参照アプリ: ${appDisplayName}`);
+          }
+          if (subField.lookup.relatedKeyField) {
+            lookupDetails.push(`参照キー: ${subField.lookup.relatedKeyField}`);
+          }
+          if (subField.lookup.fieldMappings) {
+            const mappings = subField.lookup.fieldMappings.map(mapping =>
+              `${mapping.field}→${mapping.relatedField}`
+            );
+            lookupDetails.push(`フィールドマッピング: ${mappings.join(', ')}`);
+          }
+          if (subField.lookup.lookupPickerFields) {
+            lookupDetails.push(`検索対象: ${subField.lookup.lookupPickerFields.join(', ')}`);
+          }
+          if (subField.lookup.filterCond) {
+            lookupDetails.push(`絞り込み: ${subField.lookup.filterCond}`);
+          }
+          if (subField.lookup.sort) {
+            const sortInfo = subField.lookup.sort;
+            lookupDetails.push(`ソート: ${sortInfo.field} (${sortInfo.order})`);
+          }
+
+          if (lookupDetails.length > 0) {
+            const lookupInfo = `[ルックアップ設定] ${lookupDetails.join('; ')}`;
+            subOptionDetails = subOptionDetails ? `${subOptionDetails}; ${lookupInfo}` : lookupInfo;
+          }
+        }
+
         csvLines.push([
           '"サブテーブル"',
           `"${fieldCode}"`,
