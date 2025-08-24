@@ -27,7 +27,9 @@
           required: groupField.required ? 'はい' : 'いいえ',
           description: groupField.description || '',
           options: groupField.options || null, // オプション情報を保持
-          expression: groupField.expression || null // 計算式を保持
+          expression: groupField.expression || null, // 計算式を保持
+          referenceTable: groupField.referenceTable || null, // 関連レコード一覧情報を保持
+          lookup: groupField.lookup || null // ルックアップ情報を保持
         });
       });
     }
@@ -118,6 +120,55 @@
           } else {
             groupOptionDetails = '計算フィールド';
           }
+        }
+        // 関連レコード一覧フィールドの場合
+        else if (groupField.type === 'REFERENCE_TABLE') {
+          const details = [];
+          if (groupField.referenceTable && groupField.referenceTable.relatedApp) {
+            details.push(`関連アプリ: ${groupField.referenceTable.relatedApp.app}`);
+          }
+          if (groupField.referenceTable && groupField.referenceTable.condition) {
+            details.push(`条件: ${groupField.referenceTable.condition}`);
+          }
+          if (groupField.referenceTable && groupField.referenceTable.filterCond) {
+            details.push(`絞り込み: ${groupField.referenceTable.filterCond}`);
+          }
+          if (groupField.referenceTable && groupField.referenceTable.displayFields) {
+            const displayFieldCodes = groupField.referenceTable.displayFields.join(', ');
+            details.push(`表示フィールド: ${displayFieldCodes}`);
+          }
+          if (groupField.referenceTable && groupField.referenceTable.sort) {
+            const sortInfo = groupField.referenceTable.sort;
+            details.push(`ソート: ${sortInfo.field} (${sortInfo.order})`);
+          }
+          groupOptionDetails = details.length > 0 ? details.join('; ') : '関連レコード一覧';
+        }
+        // ルックアップフィールドの場合
+        else if (groupField.type === 'LOOKUP') {
+          const details = [];
+          if (groupField.lookup && groupField.lookup.relatedApp) {
+            details.push(`参照アプリ: ${groupField.lookup.relatedApp.app}`);
+          }
+          if (groupField.lookup && groupField.lookup.relatedKeyField) {
+            details.push(`参照キー: ${groupField.lookup.relatedKeyField}`);
+          }
+          if (groupField.lookup && groupField.lookup.fieldMappings) {
+            const mappings = groupField.lookup.fieldMappings.map(mapping =>
+              `${mapping.field}→${mapping.relatedField}`
+            );
+            details.push(`フィールドマッピング: ${mappings.join(', ')}`);
+          }
+          if (groupField.lookup && groupField.lookup.lookupPickerFields) {
+            details.push(`検索対象: ${groupField.lookup.lookupPickerFields.join(', ')}`);
+          }
+          if (groupField.lookup && groupField.lookup.filterCond) {
+            details.push(`絞り込み: ${groupField.lookup.filterCond}`);
+          }
+          if (groupField.lookup && groupField.lookup.sort) {
+            const sortInfo = groupField.lookup.sort;
+            details.push(`ソート: ${sortInfo.field} (${sortInfo.order})`);
+          }
+          groupOptionDetails = details.length > 0 ? details.join('; ') : 'ルックアップ';
         }
         // 選択肢型フィールドの場合
         else if (groupField.options) {
