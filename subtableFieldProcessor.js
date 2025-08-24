@@ -23,8 +23,10 @@
           code: subFieldCode,
           label: subField.label || subFieldCode,
           type: getFieldTypeLabel(subField.type),
+          rawType: subField.type, // 元のフィールドタイプを保持
           required: subField.required ? 'はい' : 'いいえ',
-          description: subField.description || ''
+          description: subField.description || '',
+          options: subField.options || null // オプション情報を保持
         });
       });
     }

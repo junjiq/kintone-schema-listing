@@ -18,72 +18,82 @@
       resizer.style.position = 'absolute';
       resizer.style.top = '0';
       resizer.style.right = '0';
-      resizer.style.bottom = '0';
       resizer.style.width = '5px';
-      resizer.style.background = 'transparent';
+      resizer.style.height = '100%';
       resizer.style.cursor = 'col-resize';
-      resizer.style.userSelect = 'none';
+      resizer.style.backgroundColor = 'transparent';
+      resizer.style.zIndex = '1';
 
-      // ヘッダーセルをリレーティブポジションに設定
-      header.style.position = 'relative';
-      header.style.minWidth = '50px';
-      header.appendChild(resizer);
-
-      let startX;
-      let startWidth;
       let isResizing = false;
+      let startX = 0;
+      let startWidth = 0;
 
       // マウスダウンイベント
       resizer.addEventListener('mousedown', (e) => {
         isResizing = true;
         startX = e.clientX;
-        startWidth = parseInt(window.getComputedStyle(header).width, 10);
-
-        // リサイズ中のスタイル
-        resizer.style.background = '#0066cc';
-        table.style.cursor = 'col-resize';
-
-        e.preventDefault();
+        startWidth = header.offsetWidth;
+        header.style.backgroundColor = '#e6f3ff';
+        resizer.style.backgroundColor = '#0066cc';
+        document.body.style.userSelect = 'none';
       });
 
-      // マウス移動イベント（ドキュメント全体で監視）
+      // マウスムーブイベント（ドキュメント全体）
       document.addEventListener('mousemove', (e) => {
         if (!isResizing) return;
-
-        const width = startWidth + e.clientX - startX;
-        if (width > 50) { // 最小幅を設定
-          header.style.width = width + 'px';
-
-          // 対応する列のすべてのセルの幅を更新
-          const columnCells = table.querySelectorAll(`td:nth-child(${index + 1})`);
-          columnCells.forEach(cell => {
-            cell.style.width = width + 'px';
-          });
-        }
+        const diff = e.clientX - startX;
+        const newWidth = Math.max(50, startWidth + diff);
+        header.style.width = newWidth + 'px';
       });
 
-      // マウスアップイベント（ドキュメント全体で監視）
+      // マウスアップイベント（ドキュメント全体）
       document.addEventListener('mouseup', () => {
-        if (!isResizing) return;
-
-        isResizing = false;
-        resizer.style.background = 'transparent';
-        table.style.cursor = 'default';
-      });
-
-      // ホバー効果
-      resizer.addEventListener('mouseenter', () => {
-        if (!isResizing) {
-          resizer.style.background = 'rgba(0, 102, 204, 0.3)';
+        if (isResizing) {
+          isResizing = false;
+          header.style.backgroundColor = '';
+          resizer.style.backgroundColor = 'transparent';
+          document.body.style.userSelect = '';
         }
       });
 
-      resizer.addEventListener('mouseleave', () => {
-        if (!isResizing) {
-          resizer.style.background = 'transparent';
-        }
-      });
+      header.style.position = 'relative';
+      header.appendChild(resizer);
     });
+  };
+
+  /**
+   * フィールドのオプション詳細を生成
+   */
+  const generateOptionDetails = (field) => {
+    let optionDetails = '';
+    const fieldType = field.rawType || field.type;
+
+    // グループフィールドの場合
+    if (fieldType === 'GROUP') {
+      const groupFieldCount = field.subFields ? field.subFields.length : 0;
+      optionDetails = `グループ内フィールド数: ${groupFieldCount}`;
+    }
+    // サブテーブルフィールドの場合
+    else if (fieldType === 'SUBTABLE') {
+      const subFieldCount = field.subFields ? field.subFields.length : 0;
+      optionDetails = `サブフィールド数: ${subFieldCount}`;
+    }
+    // 通常のオプション詳細処理
+    else if (field.options) {
+      if (fieldType === 'DROP_DOWN' || fieldType === 'RADIO_BUTTON' ||
+          fieldType === 'CHECK_BOX' || fieldType === 'MULTI_SELECT') {
+        // 選択肢型フィールドの場合
+        const choices = Object.keys(field.options).map(key =>
+          `${key}:${field.options[key].label || field.options[key]}`);
+        optionDetails = choices.join('; ');
+      } else {
+        // その他のオプション
+        optionDetails = Object.keys(field.options).map(key =>
+          `${key}=${JSON.stringify(field.options[key])}`).join('; ');
+      }
+    }
+
+    return optionDetails;
   };
 
   /**
@@ -95,20 +105,22 @@
     messageDiv.style.padding = '10px';
     messageDiv.style.borderRadius = '4px';
     messageDiv.style.marginBottom = '10px';
-    messageDiv.style.fontSize = '14px';
+    messageDiv.style.fontWeight = 'bold';
+    messageDiv.classList.add('temp-message');
 
-    if (type === 'success') {
-      messageDiv.style.backgroundColor = '#d4edda';
-      messageDiv.style.color = '#155724';
-      messageDiv.style.border = '1px solid #c3e6cb';
-    } else if (type === 'error') {
+    // タイプに応じてスタイルを設定
+    if (type === 'error') {
       messageDiv.style.backgroundColor = '#f8d7da';
       messageDiv.style.color = '#721c24';
       messageDiv.style.border = '1px solid #f5c6cb';
+    } else if (type === 'success') {
+      messageDiv.style.backgroundColor = '#d4edda';
+      messageDiv.style.color = '#155724';
+      messageDiv.style.border = '1px solid #c3e6cb';
     } else {
-      messageDiv.style.backgroundColor = '#d1ecf1';
-      messageDiv.style.color = '#0c5460';
-      messageDiv.style.border = '1px solid #bee5eb';
+      messageDiv.style.backgroundColor = '#cce7ff';
+      messageDiv.style.color = '#004085';
+      messageDiv.style.border = '1px solid #b3d7ff';
     }
 
     // 既存のメッセージを削除
@@ -117,25 +129,27 @@
       existingMessage.remove();
     }
 
-    messageDiv.className = 'temp-message';
+    // メッセージをクエリUIの上に挿入
     const queryUI = document.getElementById('query-ui');
-    if (queryUI) {
-      queryUI.insertBefore(messageDiv, queryUI.children[1]); // タイトルの後に挿入
-
-      // 5秒後に自動削除
-      setTimeout(() => {
-        if (messageDiv.parentNode) {
-          messageDiv.remove();
-        }
-      }, 5000);
+    if (queryUI && queryUI.parentNode) {
+      queryUI.parentNode.insertBefore(messageDiv, queryUI);
+    } else {
+      document.body.insertBefore(messageDiv, document.body.firstChild);
     }
+
+    // 5秒後に自動削除
+    setTimeout(() => {
+      if (messageDiv.parentNode) {
+        messageDiv.remove();
+      }
+    }, 5000);
   };
 
   /**
    * アプリ一覧を表示
    */
   const displayAppList = (apps, inputElement) => {
-    // 既存のアプリ一覧を削除
+    // 既存のリストを削除
     const existingList = document.getElementById('app-list-container');
     if (existingList) {
       existingList.remove();
@@ -143,44 +157,46 @@
 
     const listContainer = document.createElement('div');
     listContainer.id = 'app-list-container';
-    listContainer.style.marginTop = '15px';
-    listContainer.style.padding = '15px';
-    listContainer.style.backgroundColor = '#ffffff';
-    listContainer.style.border = '1px solid #dee2e6';
-    listContainer.style.borderRadius = '5px';
+    listContainer.style.position = 'absolute';
+    listContainer.style.backgroundColor = 'white';
+    listContainer.style.border = '1px solid #ccc';
+    listContainer.style.borderRadius = '4px';
     listContainer.style.maxHeight = '300px';
     listContainer.style.overflowY = 'auto';
+    listContainer.style.zIndex = '1000';
+    listContainer.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
 
     const listTitle = document.createElement('h4');
-    listTitle.textContent = `スペース内のアプリ一覧（${apps.length}件）`;
-    listTitle.style.margin = '0 0 10px 0';
-    listTitle.style.color = '#495057';
-    listTitle.style.fontSize = '16px';
-    listContainer.appendChild(listTitle);
+    listTitle.textContent = `アプリ一覧 (${apps.length}件)`;
+    listTitle.style.margin = '0';
+    listTitle.style.padding = '10px';
+    listTitle.style.backgroundColor = '#f0f8ff';
+    listTitle.style.borderBottom = '1px solid #ddd';
 
     const closeButton = document.createElement('button');
     closeButton.textContent = '×';
     closeButton.style.position = 'absolute';
     closeButton.style.right = '10px';
-    closeButton.style.top = '10px';
-    closeButton.style.background = 'none';
+    closeButton.style.top = '8px';
     closeButton.style.border = 'none';
-    closeButton.style.fontSize = '20px';
+    closeButton.style.background = 'none';
+    closeButton.style.fontSize = '18px';
     closeButton.style.cursor = 'pointer';
-    closeButton.style.color = '#6c757d';
-    closeButton.onclick = () => listContainer.remove();
+    closeButton.style.color = '#999';
+    closeButton.onclick = () => {
+      listContainer.remove();
+    };
 
-    listContainer.style.position = 'relative';
-    listContainer.appendChild(closeButton);
+    listTitle.appendChild(closeButton);
+    listContainer.appendChild(listTitle);
 
+    // アプリをリスト表示
     apps.forEach(app => {
       const appItem = document.createElement('div');
-      appItem.style.padding = '8px 12px';
-      appItem.style.margin = '2px 0';
-      appItem.style.backgroundColor = '#f8f9fa';
-      appItem.style.border = '1px solid #e9ecef';
-      appItem.style.borderRadius = '3px';
+      appItem.style.padding = '10px';
+      appItem.style.borderBottom = '1px solid #eee';
       appItem.style.cursor = 'pointer';
+      appItem.style.backgroundColor = '#f8f9fa';
       appItem.style.display = 'flex';
       appItem.style.justifyContent = 'space-between';
       appItem.style.alignItems = 'center';
@@ -234,7 +250,7 @@
   };
 
   /**
-   * スキーマをHTMLテーブルとして表示（リサイズ可能なカラム付き）
+   * HTMLテーブルとしてスキーマを表示（オプション詳細付き）
    */
   const displaySchemaTable = (formattedSchema, containerElement) => {
     const table = document.createElement('table');
@@ -254,7 +270,8 @@
       { text: 'フィールド名', width: '250px' },
       { text: 'タイプ', width: '150px' },
       { text: '必須', width: '80px' },
-      { text: '説明', width: 'auto' }
+      { text: '説明', width: '250px' },
+      { text: 'オプション詳細', width: 'auto' }
     ];
 
     headers.forEach((headerInfo, index) => {
@@ -334,11 +351,24 @@
       descCell.style.overflow = 'hidden';
       descCell.title = field.description; // ツールチップで全文表示
 
+      // オプション詳細
+      const optionCell = document.createElement('td');
+      const optionDetails = generateOptionDetails(field);
+      optionCell.textContent = optionDetails;
+      optionCell.style.border = '1px solid #ddd';
+      optionCell.style.padding = '8px';
+      optionCell.style.fontSize = '11px';
+      optionCell.style.wordWrap = 'break-word';
+      optionCell.style.overflow = 'hidden';
+      optionCell.style.color = '#666';
+      optionCell.title = optionDetails; // ツールチップで全文表示
+
       row.appendChild(codeCell);
       row.appendChild(labelCell);
       row.appendChild(typeCell);
       row.appendChild(requiredCell);
       row.appendChild(descCell);
+      row.appendChild(optionCell);
 
       table.appendChild(row);
 
@@ -406,11 +436,24 @@
           subDescCell.style.overflow = 'hidden';
           subDescCell.title = subField.description;
 
+          // サブオプション詳細
+          const subOptionCell = document.createElement('td');
+          const subOptionDetails = generateOptionDetails(subField);
+          subOptionCell.textContent = subOptionDetails;
+          subOptionCell.style.border = '1px solid #ddd';
+          subOptionCell.style.padding = '8px';
+          subOptionCell.style.fontSize = '10px';
+          subOptionCell.style.color = '#999';
+          subOptionCell.style.wordWrap = 'break-word';
+          subOptionCell.style.overflow = 'hidden';
+          subOptionCell.title = subOptionDetails;
+
           subRow.appendChild(subCodeCell);
           subRow.appendChild(subLabelCell);
           subRow.appendChild(subTypeCell);
           subRow.appendChild(subRequiredCell);
           subRow.appendChild(subDescCell);
+          subRow.appendChild(subOptionCell);
 
           table.appendChild(subRow);
         });

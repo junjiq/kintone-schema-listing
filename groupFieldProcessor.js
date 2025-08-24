@@ -23,8 +23,10 @@
           code: groupFieldCode,
           label: groupField.label || groupFieldCode,
           type: getFieldTypeLabel(groupField.type),
+          rawType: groupField.type, // 元のフィールドタイプを保持
           required: groupField.required ? 'はい' : 'いいえ',
-          description: groupField.description || ''
+          description: groupField.description || '',
+          options: groupField.options || null // オプション情報を保持
         });
       });
     }

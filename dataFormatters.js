@@ -58,8 +58,10 @@
         code: fieldCode,
         label: field.label || fieldCode,
         type: getFieldTypeLabel(field.type),
+        rawType: field.type, // 元のフィールドタイプを保持
         required: field.required ? 'はい' : 'いいえ',
         description: field.description || '',
+        options: field.options || null, // オプション情報を保持
         subFields: []
       };
 
