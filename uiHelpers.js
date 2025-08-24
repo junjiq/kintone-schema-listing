@@ -561,6 +561,22 @@
   };
 
   /**
+   * 画面をリセット
+   */
+  const resetDisplay = () => {
+    const resultContainer = document.getElementById('query-result');
+    if (resultContainer) {
+      resultContainer.innerHTML = '';
+    }
+
+    // アプリ一覧表示エリアもクリア
+    const appListContainer = document.getElementById('app-list-container');
+    if (appListContainer) {
+      appListContainer.remove();
+    }
+  };
+
+  /**
    * HTMLテーブルとしてレコードデータを表示
    */
   const displayRecordTable = (records, schema, containerElement) => {
@@ -755,6 +771,7 @@
     displayRecordTable,
     makeTableResizable,
     updateAppNameCache,
+    resetDisplay,
     appNameCache // キャッシュも公開
   };
 

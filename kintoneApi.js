@@ -73,120 +73,102 @@
       const schema = response.properties;
       console.log('取得されたスキーマ:', schema);
 
-             // グループフィールドの詳細情報を確認
-       Object.keys(schema).forEach(fieldCode => {
-         const field = schema[fieldCode];
-         if (field.type === 'GROUP') {
-           console.log(`グループフィールド ${fieldCode} のfieldsプロパティ:`, field.fields);
-         }
-       });
+      // グループフィールドの詳細情報を確認
+      Object.keys(schema).forEach(fieldCode => {
+        const field = schema[fieldCode];
+        if (field.type === 'GROUP') {
+          console.log(`グループフィールド ${fieldCode} のfieldsプロパティ:`, field.fields);
+        }
+      });
 
-            // フォームレイアウト情報も取得してグループフィールドの詳細を確認
+      // フォームレイアウト情報も取得してグループフィールドの詳細を確認
       let layoutResponse = null;
       try {
+        console.log('フォームレイアウト情報を取得中...');
         layoutResponse = await kintone.api(kintone.api.url('/k/v1/app/form/layout.json', true), 'GET', {
           app: appId
         });
-                 // レイアウト情報からグループフィールドの詳細を確認
-         if (layoutResponse.layout) {
-           layoutResponse.layout.forEach((row, rowIndex) => {
-             if (row.fields) {
-               row.fields.forEach((field, fieldIndex) => {
-                 if (field.type === 'GROUP') {
-                   console.log(`レイアウト内のグループフィールド ${field.code} を検出`);
-                 }
-               });
-             }
-           });
-         }
+        console.log('フォームレイアウト情報取得成功:', layoutResponse);
       } catch (layoutError) {
         console.warn('フォームレイアウト情報の取得に失敗:', layoutError);
       }
 
-      // グループフィールドの詳細情報を取得するために、フィールド設定APIを試す
-      try {
-        const fieldResponse = await kintone.api(kintone.api.url('/k/v1/app/form/fields.json', true), 'GET', {
-          app: appId,
-          lang: 'ja'
-        });
-                 // グループフィールドの詳細を確認
-         if (fieldResponse.properties) {
-           Object.keys(fieldResponse.properties).forEach(fieldCode => {
-             const field = fieldResponse.properties[fieldCode];
-             if (field.type === 'GROUP') {
-               console.log(`フィールド設定内のグループフィールド ${fieldCode} を検出`);
-             }
-           });
-         }
-      } catch (fieldError) {
-        console.warn('フィールド設定情報の取得に失敗:', fieldError);
-      }
-
-            // レイアウト情報からグループフィールドの詳細を推測
+      // レイアウト情報からグループフィールドの詳細を取得
       if (layoutResponse && layoutResponse.layout) {
+        console.log('レイアウト情報の構造:', layoutResponse.layout);
         const groupFields = {};
 
-                 layoutResponse.layout.forEach((row, rowIndex) => {
-                      // グループフィールドが直接rowオブジェクトとして存在する場合の処理
-           if (row.type === 'GROUP') {
-             console.log(`直接グループフィールド ${row.code} を処理中...`);
-             groupFields[row.code] = row;
+        // グループフィールド情報を収集する関数
+        function walkLayout(nodes, currentGroup) {
+          for (const node of nodes) {
+            if (node.type === 'GROUP') {
+              console.log(`グループフィールド ${node.code} を処理中...`);
+              const groupInfo = {
+                groupCode: node.code || null,
+                groupLabel: node.label || null,
+                fields: {}
+              };
+              groupFields[node.code] = groupInfo;
 
-             // グループフィールドのlayoutから内部フィールド情報を取得
-             if (row.layout && Array.isArray(row.layout)) {
-               const internalFields = {};
-
-               row.layout.forEach((internalRow, internalRowIndex) => {
-                 if (internalRow.fields) {
-                   internalRow.fields.forEach((internalField, internalFieldIndex) => {
-                     internalFields[internalField.code] = internalField;
-                   });
-                 }
-               });
-
-               // 内部フィールド情報をグループフィールドに追加
-               row.fields = internalFields;
-               console.log(`直接グループフィールド ${row.code} の内部フィールド数:`, Object.keys(internalFields).length);
-             }
-           }
-
-                      // 従来の処理：row.fields内のグループフィールドを処理（row.fieldsが配列の場合のみ）
-           if (row.fields && Array.isArray(row.fields)) {
-             row.fields.forEach((field, fieldIndex) => {
-               if (field.type === 'GROUP') {
-                 console.log(`グループフィールド ${field.code} を処理中...`);
-                 groupFields[field.code] = field;
-
-                 // グループフィールドのlayoutから内部フィールド情報を取得
-                 if (field.layout && Array.isArray(field.layout)) {
-                   const internalFields = {};
-
-                   field.layout.forEach((internalRow, internalRowIndex) => {
-                     if (internalRow.fields) {
-                       internalRow.fields.forEach((internalField, internalFieldIndex) => {
-                         internalFields[internalField.code] = internalField;
-                       });
+              // GROUP の中は node.layout（配列）
+              walkLayout(node.layout || [], groupInfo);
+            } else if (node.type === 'ROW') {
+              // ROW の中は fields（配列）
+              for (const f of (node.fields || [])) {
+                if (f.type === 'SUBTABLE') {
+                  // サブテーブル配下の fields も拾いたければここで処理
+                                     for (const sf of (f.fields || [])) {
+                     if (currentGroup) {
+                       // codeプロパティが存在しない場合は、labelをベースにしたキーを生成
+                       const fieldKey = sf.code || `label_${sf.label ? sf.label.replace(/[^a-zA-Z0-9]/g, '_') : 'unknown'}`;
+                       currentGroup.fields[fieldKey] = {
+                         code: sf.code || fieldKey,
+                         label: sf.label,
+                         type: sf.type,
+                         inSubtable: f.code
+                       };
                      }
-                   });
-
-                   // 内部フィールド情報をグループフィールドに追加
-                   field.fields = internalFields;
-                   console.log(`グループフィールド ${field.code} の内部フィールド数:`, Object.keys(internalFields).length);
+                   }
+                                 } else {
+                   if (currentGroup) {
+                     // codeプロパティが存在しない場合は、labelをベースにしたキーを生成
+                     const fieldKey = f.code || `label_${f.label ? f.label.replace(/[^a-zA-Z0-9]/g, '_') : 'unknown'}`;
+                     currentGroup.fields[fieldKey] = {
+                       code: f.code || fieldKey,
+                       label: f.label,
+                       type: f.type
+                     };
+                   }
                  }
-               }
-             });
-           }
-         });
+              }
+            }
+          }
+        }
 
-                 // グループフィールドの詳細情報をスキーマに追加
-         Object.keys(schema).forEach(fieldCode => {
-           const field = schema[fieldCode];
-           if (field.type === 'GROUP' && groupFields[fieldCode]) {
-             console.log(`グループフィールド ${fieldCode} の詳細情報を追加`);
-             // レイアウト情報からグループフィールドの詳細を取得
-             Object.assign(field, groupFields[fieldCode]);
-           }
-         });
+        walkLayout(layoutResponse.layout || [], null);
+
+        // グループフィールドの詳細情報をスキーマに追加
+        console.log('収集されたグループフィールド情報:', groupFields);
+        Object.keys(schema).forEach(fieldCode => {
+          const field = schema[fieldCode];
+          if (field.type === 'GROUP' && groupFields[fieldCode]) {
+            console.log(`グループフィールド ${fieldCode} の詳細情報を追加`);
+            const groupInfo = groupFields[fieldCode];
+
+            // グループフィールドのfieldsプロパティを設定
+            field.fields = groupInfo.fields;
+            console.log(`グループフィールド ${fieldCode} の内部フィールド数:`, Object.keys(groupInfo.fields).length);
+            console.log(`グループフィールド ${fieldCode} の内部フィールド詳細:`, groupInfo.fields);
+
+            // グループフィールドの詳細情報も追加
+            Object.assign(field, {
+              groupCode: groupInfo.groupCode,
+              groupLabel: groupInfo.groupLabel
+            });
+          } else if (field.type === 'GROUP' && !groupFields[fieldCode]) {
+            console.warn(`グループフィールド ${fieldCode} の情報が見つかりません`);
+          }
+        });
       }
 
       return schema;

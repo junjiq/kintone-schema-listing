@@ -215,6 +215,9 @@
 
     showAppsButton.onclick = async () => {
       try {
+        // 画面をリセット
+        window.UIHelpers.resetDisplay();
+
         showAppsButton.disabled = true;
         showAppsButton.textContent = '取得中...';
 
