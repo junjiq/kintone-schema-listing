@@ -50,7 +50,17 @@
 
       // オプション詳細の生成
       let optionDetails = '';
-      if (field.options) {
+
+      // 計算フィールドの場合
+      if (field.type === 'CALC') {
+        if (field.expression) {
+          optionDetails = `計算式: ${field.expression}`;
+        } else {
+          optionDetails = '計算フィールド';
+        }
+      }
+      // 選択肢型フィールドの場合
+      else if (field.options) {
         if (field.type === 'DROP_DOWN' || field.type === 'RADIO_BUTTON' ||
             field.type === 'CHECK_BOX' || field.type === 'MULTI_SELECT') {
           // 選択肢型フィールドの場合

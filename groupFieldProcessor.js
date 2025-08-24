@@ -26,7 +26,8 @@
           rawType: groupField.type, // 元のフィールドタイプを保持
           required: groupField.required ? 'はい' : 'いいえ',
           description: groupField.description || '',
-          options: groupField.options || null // オプション情報を保持
+          options: groupField.options || null, // オプション情報を保持
+          expression: groupField.expression || null // 計算式を保持
         });
       });
     }
@@ -109,7 +110,17 @@
 
         // グループ内フィールドのオプション詳細
         let groupOptionDetails = '';
-        if (groupField.options) {
+
+        // 計算フィールドの場合
+        if (groupField.type === 'CALC') {
+          if (groupField.expression) {
+            groupOptionDetails = `計算式: ${groupField.expression}`;
+          } else {
+            groupOptionDetails = '計算フィールド';
+          }
+        }
+        // 選択肢型フィールドの場合
+        else if (groupField.options) {
           if (groupField.type === 'DROP_DOWN' || groupField.type === 'RADIO_BUTTON' ||
               groupField.type === 'CHECK_BOX' || groupField.type === 'MULTI_SELECT') {
             const groupChoices = Object.keys(groupField.options).map(key =>

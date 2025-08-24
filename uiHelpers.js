@@ -68,8 +68,18 @@
     let optionDetails = '';
     const fieldType = field.rawType || field.type;
 
+    // 計算フィールドの場合
+    if (fieldType === 'CALC') {
+      if (field.expression) {
+        optionDetails = `計算式: ${field.expression}`;
+      } else if (field.options && field.options.expression) {
+        optionDetails = `計算式: ${field.options.expression}`;
+      } else {
+        optionDetails = '計算フィールド';
+      }
+    }
     // グループフィールドの場合
-    if (fieldType === 'GROUP') {
+    else if (fieldType === 'GROUP') {
       const groupFieldCount = field.subFields ? field.subFields.length : 0;
       optionDetails = `グループ内フィールド数: ${groupFieldCount}`;
     }

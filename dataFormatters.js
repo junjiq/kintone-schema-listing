@@ -62,6 +62,7 @@
         required: field.required ? 'はい' : 'いいえ',
         description: field.description || '',
         options: field.options || null, // オプション情報を保持
+        expression: field.expression || null, // 計算式を保持
         subFields: []
       };
 
