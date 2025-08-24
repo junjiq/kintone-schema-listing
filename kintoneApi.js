@@ -117,29 +117,29 @@
               for (const f of (node.fields || [])) {
                 if (f.type === 'SUBTABLE') {
                   // サブテーブル配下の fields も拾いたければここで処理
-                                     for (const sf of (f.fields || [])) {
-                     if (currentGroup) {
-                       // codeプロパティが存在しない場合は、labelをベースにしたキーを生成
-                       const fieldKey = sf.code || `label_${sf.label ? sf.label.replace(/[^a-zA-Z0-9]/g, '_') : 'unknown'}`;
-                       currentGroup.fields[fieldKey] = {
-                         code: sf.code || fieldKey,
-                         label: sf.label,
-                         type: sf.type,
-                         inSubtable: f.code
-                       };
-                     }
-                   }
-                                 } else {
-                   if (currentGroup) {
-                     // codeプロパティが存在しない場合は、labelをベースにしたキーを生成
-                     const fieldKey = f.code || `label_${f.label ? f.label.replace(/[^a-zA-Z0-9]/g, '_') : 'unknown'}`;
-                     currentGroup.fields[fieldKey] = {
-                       code: f.code || fieldKey,
-                       label: f.label,
-                       type: f.type
-                     };
-                   }
-                 }
+                  for (const sf of (f.fields || [])) {
+                    if (currentGroup) {
+                      // codeプロパティが存在しない場合は、labelをベースにしたキーを生成
+                      const fieldKey = sf.code || `label_${sf.label ? sf.label.replace(/[^a-zA-Z0-9]/g, '_') : 'unknown'}`;
+                      currentGroup.fields[fieldKey] = {
+                        code: sf.code || fieldKey,
+                        label: sf.label,
+                        type: sf.type,
+                        inSubtable: f.code
+                      };
+                    }
+                  }
+                } else {
+                  if (currentGroup) {
+                    // codeプロパティが存在しない場合は、labelをベースにしたキーを生成
+                    const fieldKey = f.code || `label_${f.label ? f.label.replace(/[^a-zA-Z0-9]/g, '_') : 'unknown'}`;
+                    currentGroup.fields[fieldKey] = {
+                      code: f.code || fieldKey,
+                      label: f.label,
+                      type: f.type
+                    };
+                  }
+                }
               }
             }
           }
