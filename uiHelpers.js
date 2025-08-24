@@ -96,8 +96,12 @@
     let optionDetails = '';
     const fieldType = field.rawType || field.type;
 
+    // ラベルフィールドの場合
+    if (fieldType === 'LABEL') {
+      optionDetails = `表示テキスト: ${field.label || ''}`;
+    }
     // 計算フィールドの場合
-    if (fieldType === 'CALC') {
+    else if (fieldType === 'CALC') {
       if (field.expression) {
         optionDetails = `計算式: ${field.expression}`;
       } else if (field.options && field.options.expression) {
@@ -589,15 +593,33 @@
     // フィールドヘッダー
     Object.keys(schema).forEach(fieldCode => {
       const field = schema[fieldCode];
-      if (!['SPACER', 'HR', 'LABEL', 'GROUP'].includes(field.type)) {
-        const th = document.createElement('th');
-        th.textContent = `${field.label}\n(${fieldCode})`;
-        th.style.border = '1px solid #ddd';
-        th.style.padding = '8px';
-        th.style.textAlign = 'left';
-        th.style.whiteSpace = 'pre-line';
-        th.style.fontSize = '12px';
-        headerRow.appendChild(th);
+      if (!['SPACER', 'HR'].includes(field.type)) {
+        if (field.type === 'GROUP' && field.fields) {
+          // グループフィールドの場合、グループ内の各フィールドをヘッダーに追加
+          Object.keys(field.fields).forEach(groupFieldCode => {
+            const groupField = field.fields[groupFieldCode];
+            if (!['SPACER', 'HR'].includes(groupField.type)) {
+              const th = document.createElement('th');
+              th.textContent = `${field.label}/${groupField.label}\n(${groupFieldCode})`;
+              th.style.border = '1px solid #ddd';
+              th.style.padding = '8px';
+              th.style.textAlign = 'left';
+              th.style.whiteSpace = 'pre-line';
+              th.style.fontSize = '12px';
+              th.style.backgroundColor = '#f0f8ff';
+              headerRow.appendChild(th);
+            }
+          });
+        } else {
+          const th = document.createElement('th');
+          th.textContent = `${field.label}\n(${fieldCode})`;
+          th.style.border = '1px solid #ddd';
+          th.style.padding = '8px';
+          th.style.textAlign = 'left';
+          th.style.whiteSpace = 'pre-line';
+          th.style.fontSize = '12px';
+          headerRow.appendChild(th);
+        }
       }
     });
     table.appendChild(headerRow);
@@ -618,45 +640,101 @@
       // フィールドセル
       Object.keys(schema).forEach(fieldCode => {
         const field = schema[fieldCode];
-        if (!['SPACER', 'HR', 'LABEL', 'GROUP'].includes(field.type)) {
-          const cell = document.createElement('td');
-          cell.style.border = '1px solid #ddd';
-          cell.style.padding = '8px';
-          cell.style.maxWidth = '200px';
-          cell.style.overflow = 'auto';
-          cell.style.verticalAlign = 'top';
+        if (!['SPACER', 'HR'].includes(field.type)) {
+          if (field.type === 'GROUP' && field.fields) {
+            // グループフィールドの場合、グループ内の各フィールドをセルに追加
+            Object.keys(field.fields).forEach(groupFieldCode => {
+              const groupField = field.fields[groupFieldCode];
+              if (!['SPACER', 'HR'].includes(groupField.type)) {
+                const cell = document.createElement('td');
+                cell.style.border = '1px solid #ddd';
+                cell.style.padding = '8px';
+                cell.style.maxWidth = '200px';
+                cell.style.overflow = 'auto';
+                cell.style.verticalAlign = 'top';
+                cell.style.backgroundColor = '#f9f9f9';
 
-          const value = record[fieldCode];
-          let cellContent = '';
+                const value = record[groupFieldCode];
+                let cellContent = '';
 
-          if (field.type === 'SUBTABLE') {
-            cellContent = `[テーブル: ${value ? value.length : 0}行]`;
-            cell.textContent = cellContent;
-            cell.style.color = '#0066cc';
-            cell.style.fontStyle = 'italic';
-            cell.style.whiteSpace = 'pre-line';
-            cell.style.fontSize = '12px';
-          } else if (value !== null && value !== undefined && value !== '') {
-            if (Array.isArray(value)) {
-              cellContent = value.join(', ');
-              cell.textContent = cellContent;
-              cell.style.whiteSpace = 'pre-line';
-              cell.style.fontSize = '12px';
-            } else {
-              cellContent = String(value);
-              cell.textContent = cellContent;
-              cell.style.whiteSpace = 'pre-line';
-              cell.style.fontSize = '12px';
-            }
+                if (groupField.type === 'LABEL') {
+                  cellContent = groupField.label || '';
+                  cell.textContent = cellContent;
+                  cell.style.color = '#666';
+                  cell.style.fontStyle = 'italic';
+                  cell.style.whiteSpace = 'pre-line';
+                  cell.style.fontSize = '12px';
+                } else if (value !== null && value !== undefined && value !== '') {
+                  if (Array.isArray(value)) {
+                    cellContent = value.join(', ');
+                    cell.textContent = cellContent;
+                    cell.style.whiteSpace = 'pre-line';
+                    cell.style.fontSize = '12px';
+                  } else {
+                    cellContent = String(value);
+                    cell.textContent = cellContent;
+                    cell.style.whiteSpace = 'pre-line';
+                    cell.style.fontSize = '12px';
+                  }
+                } else {
+                  cellContent = '-';
+                  cell.textContent = cellContent;
+                  cell.style.whiteSpace = 'pre-line';
+                  cell.style.fontSize = '12px';
+                  cell.style.color = '#999';
+                }
+
+                row.appendChild(cell);
+              }
+            });
           } else {
-            cellContent = '-';
-            cell.textContent = cellContent;
-            cell.style.whiteSpace = 'pre-line';
-            cell.style.fontSize = '12px';
-            cell.style.color = '#999';
-          }
+            const cell = document.createElement('td');
+            cell.style.border = '1px solid #ddd';
+            cell.style.padding = '8px';
+            cell.style.maxWidth = '200px';
+            cell.style.overflow = 'auto';
+            cell.style.verticalAlign = 'top';
 
-          row.appendChild(cell);
+            const value = record[fieldCode];
+            let cellContent = '';
+
+            if (field.type === 'LABEL') {
+              cellContent = field.label || '';
+              cell.textContent = cellContent;
+              cell.style.color = '#666';
+              cell.style.fontStyle = 'italic';
+              cell.style.whiteSpace = 'pre-line';
+              cell.style.fontSize = '12px';
+              cell.style.backgroundColor = '#f9f9f9';
+            } else if (field.type === 'SUBTABLE') {
+              cellContent = `[テーブル: ${value ? value.length : 0}行]`;
+              cell.textContent = cellContent;
+              cell.style.color = '#0066cc';
+              cell.style.fontStyle = 'italic';
+              cell.style.whiteSpace = 'pre-line';
+              cell.style.fontSize = '12px';
+            } else if (value !== null && value !== undefined && value !== '') {
+              if (Array.isArray(value)) {
+                cellContent = value.join(', ');
+                cell.textContent = cellContent;
+                cell.style.whiteSpace = 'pre-line';
+                cell.style.fontSize = '12px';
+              } else {
+                cellContent = String(value);
+                cell.textContent = cellContent;
+                cell.style.whiteSpace = 'pre-line';
+                cell.style.fontSize = '12px';
+              }
+            } else {
+              cellContent = '-';
+              cell.textContent = cellContent;
+              cell.style.whiteSpace = 'pre-line';
+              cell.style.fontSize = '12px';
+              cell.style.color = '#999';
+            }
+
+            row.appendChild(cell);
+          }
         }
       });
 

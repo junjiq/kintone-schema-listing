@@ -56,14 +56,32 @@
     ].join(','));
 
     // メインフィールドを処理
+    console.log('schemaToCSV: スキーマ全体:', schema);
+    console.log('schemaToCSV: フィールドタイプ一覧:', Object.keys(schema).map(code => `${code}: ${schema[code].type}`));
+
+    // グループフィールドの存在確認
+    const groupFields = Object.keys(schema).filter(code => schema[code].type === 'GROUP');
+    console.log('schemaToCSV: グループフィールド一覧:', groupFields);
+    if (groupFields.length > 0) {
+      groupFields.forEach(code => {
+        console.log(`schemaToCSV: グループフィールド ${code}:`, schema[code]);
+      });
+    } else {
+      console.log('schemaToCSV: グループフィールドは存在しません');
+    }
+
     Object.keys(schema).forEach(fieldCode => {
       const field = schema[fieldCode];
 
       // オプション詳細の生成
       let optionDetails = '';
 
+      // ラベルフィールドの場合
+      if (field.type === 'LABEL') {
+        optionDetails = `表示テキスト: ${field.label || ''}`;
+      }
       // 計算フィールドの場合
-      if (field.type === 'CALC') {
+      else if (field.type === 'CALC') {
         if (field.expression) {
           optionDetails = `計算式: ${field.expression}`;
         } else {
@@ -148,7 +166,12 @@
         ].join(','));
       } else if (field.type === 'GROUP') {
         // グループフィールドの場合
+        console.log(`CSVエクスポート: グループフィールド ${fieldCode} を処理:`, field);
+        console.log(`CSVエクスポート: field.fields:`, field.fields);
+        console.log(`CSVエクスポート: field.fields の型:`, typeof field.fields);
+        console.log(`CSVエクスポート: field.fields が配列か:`, Array.isArray(field.fields));
         const groupLines = GroupFieldProcessor.processGroupSchemaForCSV(field, fieldCode);
+        console.log(`グループフィールド ${fieldCode} の処理結果:`, groupLines);
         csvLines.push(...groupLines);
       } else {
         // サブテーブルフィールドの場合
@@ -200,12 +223,16 @@
 
     Object.keys(schema).forEach(fieldCode => {
       const field = schema[fieldCode];
-      if (!['SPACER', 'HR', 'LABEL', 'SUBTABLE'].includes(field.type)) {
+      if (!['SPACER', 'HR', 'SUBTABLE'].includes(field.type)) {
         if (field.type === 'GROUP' && field.fields) {
           // グループフィールドの場合、グループ内の各フィールドをヘッダーに追加
           const groupHeaderInfo = GroupFieldProcessor.getGroupHeadersForCSV(field, fieldCode);
           headers.push(...groupHeaderInfo.headers);
           fieldCodes.push(...groupHeaderInfo.fieldCodes);
+        } else if (field.type === 'LABEL') {
+          // ラベルフィールドの場合
+          headers.push(`${field.label}(${fieldCode})`);
+          fieldCodes.push({ type: 'label', fieldCode: fieldCode });
         } else {
           headers.push(`${field.label}(${fieldCode})`);
           fieldCodes.push({ type: 'normal', fieldCode: fieldCode });
@@ -223,15 +250,31 @@
         let value;
         let cellContent = '';
 
-        if (fieldInfo.type === 'group') {
+                if (fieldInfo.type === 'group') {
           // グループ内フィールドの場合
           value = GroupFieldProcessor.getGroupValueForCSV(record, fieldInfo);
+
+          // グループ内のラベルフィールドの場合は特別処理
+          const parentField = schema[fieldInfo.parentCode];
+          if (parentField && parentField.fields && parentField.fields[fieldInfo.fieldCode]) {
+            const groupField = parentField.fields[fieldInfo.fieldCode];
+            if (groupField.type === 'LABEL') {
+              cellContent = groupField.label || '';
+            } else if (groupField.type === 'LOOKUP') {
+              // グループ内のルックアップフィールドの場合、ルックアップされた値を処理
+              cellContent = value || '';
+            }
+          }
+        } else if (fieldInfo.type === 'label') {
+          // ラベルフィールドの場合
+          const field = schema[fieldInfo.fieldCode];
+          cellContent = field.label || '';
         } else {
           // 通常フィールドの場合
           value = record[fieldInfo.fieldCode];
         }
 
-        if (value !== null && value !== undefined && value !== '') {
+        if (fieldInfo.type !== 'label' && !(fieldInfo.type === 'group' && parentField && parentField.fields && parentField.fields[fieldInfo.fieldCode] && parentField.fields[fieldInfo.fieldCode].type === 'LABEL') && value !== null && value !== undefined && value !== '') {
           if (Array.isArray(value)) {
             cellContent = value.join(', ');
           } else {

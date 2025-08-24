@@ -66,6 +66,7 @@
       const formattedRow = {};
       Object.keys(row).forEach(fieldCode => {
         if (row[fieldCode] && row[fieldCode].value !== undefined) {
+          // ルックアップフィールドの場合、ルックアップされた値を処理
           formattedRow[fieldCode] = row[fieldCode].value;
         } else if (row[fieldCode] !== undefined) {
           // valueプロパティがない場合は直接値を使用
@@ -123,8 +124,12 @@
         // サブフィールドのオプション詳細
         let subOptionDetails = '';
 
+        // ラベルフィールドの場合
+        if (subField.type === 'LABEL') {
+          subOptionDetails = `表示テキスト: ${subField.label || ''}`;
+        }
         // 計算フィールドの場合
-        if (subField.type === 'CALC') {
+        else if (subField.type === 'CALC') {
           if (subField.expression) {
             subOptionDetails = `計算式: ${subField.expression}`;
           } else {

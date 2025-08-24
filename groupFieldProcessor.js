@@ -27,9 +27,14 @@
   const processGroupSchema = (field, fieldCode, getFieldTypeLabel) => {
     const subFields = [];
 
+    console.log(`processGroupSchema: グループフィールド ${fieldCode} を処理:`, field);
+    console.log(`processGroupSchema: field.fields:`, field.fields);
+
     if (field.type === 'GROUP' && field.fields) {
+      console.log(`processGroupSchema: グループ内フィールドの処理開始:`, Object.keys(field.fields));
       Object.keys(field.fields).forEach(groupFieldCode => {
         const groupField = field.fields[groupFieldCode];
+        console.log(`processGroupSchema: グループ内フィールド ${groupFieldCode}:`, groupField);
         subFields.push({
           code: groupFieldCode,
           label: groupField.label || groupFieldCode,
@@ -45,6 +50,7 @@
       });
     }
 
+    console.log(`processGroupSchema: 処理結果:`, subFields);
     return subFields;
   };
 
@@ -89,6 +95,9 @@
     } else if (fieldSchema.type === 'CHECK_BOX' ||
                fieldSchema.type === 'MULTI_SELECT') {
       return value.value;
+    } else if (fieldSchema.type === 'LOOKUP') {
+      // ルックアップフィールドの場合、ルックアップされた値を処理
+      return value.value;
     } else {
       return value.value;
     }
@@ -103,8 +112,16 @@
   const processGroupSchemaForCSV = (field, fieldCode) => {
     const csvLines = [];
 
+    // デバッグ情報を追加
+    console.log(`グループフィールド ${fieldCode} の処理:`, field);
+    console.log(`field.fields:`, field.fields);
+    console.log(`field.fields の型:`, typeof field.fields);
+    console.log(`field.fields が配列か:`, Array.isArray(field.fields));
+
     // グループフィールド自体
     const groupFieldCount = Object.keys(field.fields || {}).length;
+    console.log(`グループ内フィールド数: ${groupFieldCount}`);
+
     csvLines.push([
       '"メイン"',
       '""',
@@ -118,14 +135,20 @@
 
     // グループ内のフィールドを処理
     if (field.fields) {
+      console.log(`グループ内フィールドの処理開始:`, Object.keys(field.fields));
       Object.keys(field.fields).forEach(groupFieldCode => {
         const groupField = field.fields[groupFieldCode];
+        console.log(`グループ内フィールド ${groupFieldCode}:`, groupField);
 
         // グループ内フィールドのオプション詳細
         let groupOptionDetails = '';
 
+        // ラベルフィールドの場合
+        if (groupField.type === 'LABEL') {
+          groupOptionDetails = `表示テキスト: ${groupField.label || ''}`;
+        }
         // 計算フィールドの場合
-        if (groupField.type === 'CALC') {
+        else if (groupField.type === 'CALC') {
           if (groupField.expression) {
             groupOptionDetails = `計算式: ${groupField.expression}`;
           } else {
@@ -227,7 +250,7 @@
     if (field.type === 'GROUP' && field.fields) {
       Object.keys(field.fields).forEach(groupFieldCode => {
         const groupField = field.fields[groupFieldCode];
-        if (!['SPACER', 'HR', 'LABEL'].includes(groupField.type)) {
+        if (!['SPACER', 'HR'].includes(groupField.type)) {
           headers.push(`${field.label}/${groupField.label}(${groupFieldCode})`);
           fieldCodes.push({ type: 'group', parentCode: fieldCode, fieldCode: groupFieldCode });
         }

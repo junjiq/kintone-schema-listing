@@ -51,6 +51,20 @@
   const formatSchema = (schema) => {
     const formattedSchema = [];
 
+    console.log('formatSchema: スキーマ全体:', schema);
+    console.log('formatSchema: フィールドタイプ一覧:', Object.keys(schema).map(code => `${code}: ${schema[code].type}`));
+
+    // グループフィールドの存在確認
+    const groupFields = Object.keys(schema).filter(code => schema[code].type === 'GROUP');
+    console.log('formatSchema: グループフィールド一覧:', groupFields);
+    if (groupFields.length > 0) {
+      groupFields.forEach(code => {
+        console.log(`formatSchema: グループフィールド ${code}:`, schema[code]);
+      });
+    } else {
+      console.log('formatSchema: グループフィールドは存在しません');
+    }
+
     Object.keys(schema).forEach(fieldCode => {
       const field = schema[fieldCode];
 
@@ -75,7 +89,9 @@
 
       // グループの場合はグループ内のフィールドも処理
       if (field.type === 'GROUP' && field.fields) {
+        console.log(`データフォーマット: グループフィールド ${fieldCode} を処理:`, field);
         fieldInfo.subFields = GroupFieldProcessor.processGroupSchema(field, fieldCode, getFieldTypeLabel);
+        console.log(`グループフィールド ${fieldCode} のサブフィールド:`, fieldInfo.subFields);
       }
 
       formattedSchema.push(fieldInfo);
@@ -108,6 +124,9 @@
           } else if (field.type === 'FILE') {
             formattedRecord[fieldCode] = value.value.map(file => file.name);
           } else if (field.type === 'CHECK_BOX' || field.type === 'MULTI_SELECT') {
+            formattedRecord[fieldCode] = value.value;
+          } else if (field.type === 'LOOKUP') {
+            // ルックアップフィールドの場合、ルックアップされた値を処理
             formattedRecord[fieldCode] = value.value;
           } else {
             formattedRecord[fieldCode] = value.value;
