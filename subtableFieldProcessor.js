@@ -141,18 +141,20 @@
             details.push(`関連アプリ: ${appDisplayName}`);
           }
           if (subField.referenceTable && subField.referenceTable.condition) {
-            details.push(`条件: ${subField.referenceTable.condition}`);
+            const formattedCondition = window.UIHelpers.formatReferenceTableCondition(subField.referenceTable.condition);
+            details.push(`条件: ${formattedCondition}`);
           }
           if (subField.referenceTable && subField.referenceTable.filterCond) {
-            details.push(`絞り込み: ${subField.referenceTable.filterCond}`);
+            const formattedFilter = window.UIHelpers.formatReferenceTableFilter(subField.referenceTable.filterCond);
+            details.push(`絞り込み: ${formattedFilter}`);
           }
           if (subField.referenceTable && subField.referenceTable.displayFields) {
             const displayFieldCodes = subField.referenceTable.displayFields.join(', ');
             details.push(`表示フィールド: ${displayFieldCodes}`);
           }
           if (subField.referenceTable && subField.referenceTable.sort) {
-            const sortInfo = subField.referenceTable.sort;
-            details.push(`ソート: ${sortInfo.field} (${sortInfo.order})`);
+            const formattedSort = window.UIHelpers.formatReferenceTableSort(subField.referenceTable.sort);
+            details.push(`ソート: ${formattedSort}`);
           }
           subOptionDetails = details.length > 0 ? details.join('; ') : '関連レコード一覧';
         }
@@ -176,11 +178,12 @@
             details.push(`検索対象: ${subField.lookup.lookupPickerFields.join(', ')}`);
           }
           if (subField.lookup.filterCond) {
-            details.push(`絞り込み: ${subField.lookup.filterCond}`);
+            const formattedFilter = window.UIHelpers.formatReferenceTableFilter(subField.lookup.filterCond);
+            details.push(`絞り込み: ${formattedFilter}`);
           }
           if (subField.lookup.sort) {
-            const sortInfo = subField.lookup.sort;
-            details.push(`ソート: ${sortInfo.field} (${sortInfo.order})`);
+            const formattedSort = window.UIHelpers.formatReferenceTableSort(subField.lookup.sort);
+            details.push(`ソート: ${formattedSort}`);
           }
           subOptionDetails = details.length > 0 ? details.join('; ') : 'ルックアップ';
         }

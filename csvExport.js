@@ -93,18 +93,20 @@
           details.push(`関連アプリ: ${appDisplayName}`);
         }
         if (field.referenceTable && field.referenceTable.condition) {
-          details.push(`条件: ${field.referenceTable.condition}`);
+          const formattedCondition = window.UIHelpers.formatReferenceTableCondition(field.referenceTable.condition);
+          details.push(`条件: ${formattedCondition}`);
         }
         if (field.referenceTable && field.referenceTable.filterCond) {
-          details.push(`絞り込み: ${field.referenceTable.filterCond}`);
+          const formattedFilter = window.UIHelpers.formatReferenceTableFilter(field.referenceTable.filterCond);
+          details.push(`絞り込み: ${formattedFilter}`);
         }
         if (field.referenceTable && field.referenceTable.displayFields) {
           const displayFieldCodes = field.referenceTable.displayFields.join(', ');
           details.push(`表示フィールド: ${displayFieldCodes}`);
         }
         if (field.referenceTable && field.referenceTable.sort) {
-          const sortInfo = field.referenceTable.sort;
-          details.push(`ソート: ${sortInfo.field} (${sortInfo.order})`);
+          const formattedSort = window.UIHelpers.formatReferenceTableSort(field.referenceTable.sort);
+          details.push(`ソート: ${formattedSort}`);
         }
         optionDetails = details.length > 0 ? details.join('; ') : '関連レコード一覧';
       }
@@ -128,11 +130,12 @@
           details.push(`検索対象: ${field.lookup.lookupPickerFields.join(', ')}`);
         }
         if (field.lookup.filterCond) {
-          details.push(`絞り込み: ${field.lookup.filterCond}`);
+          const formattedFilter = window.UIHelpers.formatReferenceTableFilter(field.lookup.filterCond);
+          details.push(`絞り込み: ${formattedFilter}`);
         }
         if (field.lookup.sort) {
-          const sortInfo = field.lookup.sort;
-          details.push(`ソート: ${sortInfo.field} (${sortInfo.order})`);
+          const formattedSort = window.UIHelpers.formatReferenceTableSort(field.lookup.sort);
+          details.push(`ソート: ${formattedSort}`);
         }
         optionDetails = details.length > 0 ? details.join('; ') : 'ルックアップ';
       }

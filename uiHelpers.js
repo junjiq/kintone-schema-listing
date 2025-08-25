@@ -19,6 +19,129 @@
     return `アプリID: ${appId}`;
   };
 
+    /**
+   * 関連レコード一覧の条件をフォーマット
+   */
+  const formatReferenceTableCondition = (condition) => {
+    if (!condition) return '';
+
+    if (typeof condition === 'string') {
+      return condition;
+    }
+
+    if (typeof condition === 'object') {
+      const conditions = [];
+
+      // フィールド条件
+      if (condition.field) {
+        conditions.push(`フィールド: ${condition.field}`);
+      }
+
+      // 関連フィールド条件
+      if (condition.relatedField) {
+        conditions.push(`関連フィールド: ${condition.relatedField}`);
+      }
+
+      // 演算子
+      if (condition.operator) {
+        conditions.push(`演算子: ${condition.operator}`);
+      }
+
+      // 値
+      if (condition.value !== undefined) {
+        if (Array.isArray(condition.value)) {
+          conditions.push(`値: [${condition.value.join(', ')}]`);
+        } else {
+          conditions.push(`値: ${condition.value}`);
+        }
+      }
+
+      // 複数条件の場合
+      if (condition.conditions && Array.isArray(condition.conditions)) {
+        const subConditions = condition.conditions.map(subCond =>
+          formatReferenceTableCondition(subCond)
+        );
+        conditions.push(`条件: ${subConditions.join(' AND ')}`);
+      }
+
+      return conditions.join(' ');
+    }
+
+    return JSON.stringify(condition);
+  };
+
+  /**
+   * 関連レコード一覧のソート条件をフォーマット
+   */
+  const formatReferenceTableSort = (sort) => {
+    if (!sort) return '';
+
+    if (typeof sort === 'string') {
+      return sort;
+    }
+
+    if (typeof sort === 'object') {
+      const sortInfo = [];
+
+      if (sort.field) {
+        sortInfo.push(`フィールド: ${sort.field}`);
+      }
+
+      if (sort.order) {
+        sortInfo.push(`順序: ${sort.order}`);
+      }
+
+      return sortInfo.join(', ');
+    }
+
+    return JSON.stringify(sort);
+  };
+
+    /**
+   * 関連レコード一覧の絞り込み条件をフォーマット
+   */
+  const formatReferenceTableFilter = (filterCond) => {
+    if (!filterCond) return '';
+
+    if (typeof filterCond === 'string') {
+      return filterCond;
+    }
+
+    if (typeof filterCond === 'object') {
+      const filters = [];
+
+      // 複数条件の場合
+      if (filterCond.conditions && Array.isArray(filterCond.conditions)) {
+        const subFilters = filterCond.conditions.map(subFilter =>
+          formatReferenceTableFilter(subFilter)
+        );
+        filters.push(`絞り込み: ${subFilters.join(' AND ')}`);
+      } else {
+        // 単一条件の場合
+        if (filterCond.field) {
+          filters.push(`フィールド: ${filterCond.field}`);
+        }
+        if (filterCond.relatedField) {
+          filters.push(`関連フィールド: ${filterCond.relatedField}`);
+        }
+        if (filterCond.operator) {
+          filters.push(`演算子: ${filterCond.operator}`);
+        }
+        if (filterCond.value !== undefined) {
+          if (Array.isArray(filterCond.value)) {
+            filters.push(`値: [${filterCond.value.join(', ')}]`);
+          } else {
+            filters.push(`値: ${filterCond.value}`);
+          }
+        }
+      }
+
+      return filters.join(' ');
+    }
+
+    return JSON.stringify(filterCond);
+  };
+
   /**
    * アプリ名キャッシュを更新
    */
@@ -118,10 +241,10 @@
         details.push(`関連アプリ: ${appDisplayName}`);
       }
       if (field.referenceTable && field.referenceTable.condition) {
-        details.push(`条件: ${field.referenceTable.condition}`);
+        details.push(`条件: ${formatReferenceTableCondition(field.referenceTable.condition)}`);
       }
       if (field.referenceTable && field.referenceTable.filterCond) {
-        details.push(`絞り込み: ${field.referenceTable.filterCond}`);
+        details.push(`絞り込み: ${formatReferenceTableFilter(field.referenceTable.filterCond)}`);
       }
       if (field.referenceTable && field.referenceTable.displayFields) {
         const displayFieldCodes = field.referenceTable.displayFields.join(', ');
@@ -129,7 +252,7 @@
       }
       if (field.referenceTable && field.referenceTable.sort) {
         const sortInfo = field.referenceTable.sort;
-        details.push(`ソート: ${sortInfo.field} (${sortInfo.order})`);
+        details.push(`ソート: ${formatReferenceTableSort(sortInfo)}`);
       }
       optionDetails = details.length > 0 ? details.join('; ') : '関連レコード一覧';
     }
@@ -153,11 +276,11 @@
          details.push(`検索対象: ${field.lookup.lookupPickerFields.join(', ')}`);
        }
        if (field.lookup.filterCond) {
-         details.push(`絞り込み: ${field.lookup.filterCond}`);
+         details.push(`絞り込み: ${formatReferenceTableFilter(field.lookup.filterCond)}`);
        }
        if (field.lookup.sort) {
          const sortInfo = field.lookup.sort;
-         details.push(`ソート: ${sortInfo.field} (${sortInfo.order})`);
+         details.push(`ソート: ${formatReferenceTableSort(sortInfo)}`);
        }
        optionDetails = details.length > 0 ? details.join('; ') : 'ルックアップ';
      }
@@ -751,7 +874,11 @@
     makeTableResizable,
     updateAppNameCache,
     resetDisplay,
-    appNameCache // キャッシュも公開
+    appNameCache, // キャッシュも公開
+    formatReferenceTableCondition,
+    formatReferenceTableSort,
+    formatReferenceTableFilter,
+    getAppDisplayName
   };
 
   console.log('UI ヘルパー スクリプトが読み込まれました');
