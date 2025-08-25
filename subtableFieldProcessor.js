@@ -31,8 +31,8 @@
       Object.keys(field.fields).forEach(subFieldCode => {
         const subField = field.fields[subFieldCode];
         subFields.push({
-          code: subFieldCode,
-          label: subField.label || subFieldCode,
+          code: subField.type === 'LABEL' ? '未定義' : subFieldCode,
+          label: subField.type === 'LABEL' ? '未定義' : (subField.label || subFieldCode),
           type: getFieldTypeLabel(subField.type),
           rawType: subField.type, // 元のフィールドタイプを保持
           required: subField.required ? 'はい' : 'いいえ',
@@ -205,8 +205,8 @@
 
 
         csvLines.push([
-          `"${subFieldCode}"`,
-          `"${subField.label || ''}"`,
+          `"${subField.type === 'LABEL' ? '未定義' : subFieldCode}"`,
+          `"${subField.type === 'LABEL' ? '未定義' : (subField.label || '')}"`,
           `"${subField.type}"`,
           `"${subField.required ? 'はい' : 'いいえ'}"`,
           `"${subOptionDetails}"`
@@ -245,9 +245,10 @@
 
       // サブテーブルのヘッダー行
       const subFieldCodes = Object.keys(field.fields || {});
-      const headerRow = ['レコードID', ...subFieldCodes.map(code =>
-        field.fields[code].label || code
-      )];
+      const headerRow = ['レコードID', ...subFieldCodes.map(code => {
+        const subField = field.fields[code];
+        return subField.type === 'LABEL' ? '未定義' : (subField.label || code);
+      })];
       sectionLines.push(headerRow.map(h => `"${h}"`).join(','));
 
       // サブテーブルデータ行

@@ -36,8 +36,8 @@
         const groupField = field.fields[groupFieldCode];
         console.log(`processGroupSchema: グループ内フィールド ${groupFieldCode}:`, groupField);
         subFields.push({
-          code: groupFieldCode,
-          label: groupField.label || groupFieldCode,
+          code: groupField.type === 'LABEL' ? '未定義' : groupFieldCode,
+          label: groupField.type === 'LABEL' ? '未定義' : (groupField.label || groupFieldCode),
           type: getFieldTypeLabel(groupField.type),
           rawType: groupField.type, // 元のフィールドタイプを保持
           required: groupField.required ? 'はい' : 'いいえ',
@@ -224,8 +224,8 @@
 
 
         csvLines.push([
-          `"${groupFieldCode}"`,
-          `"${groupField.label || ''}"`,
+          `"${groupField.type === 'LABEL' ? '未定義' : groupFieldCode}"`,
+          `"${groupField.type === 'LABEL' ? '未定義' : (groupField.label || '')}"`,
           `"${groupField.type}"`,
           `"${groupField.required ? 'はい' : 'いいえ'}"`,
           `"${groupOptionDetails}"`
@@ -250,7 +250,9 @@
       Object.keys(field.fields).forEach(groupFieldCode => {
         const groupField = field.fields[groupFieldCode];
         if (!['SPACER', 'HR'].includes(groupField.type)) {
-          headers.push(`${field.label}/${groupField.label}(${groupFieldCode})`);
+          const groupFieldLabel = groupField.type === 'LABEL' ? '未定義' : groupField.label;
+          const groupFieldCodeDisplay = groupField.type === 'LABEL' ? '未定義' : groupFieldCode;
+          headers.push(`${field.label}/${groupFieldLabel}(${groupFieldCodeDisplay})`);
           fieldCodes.push({ type: 'group', parentCode: fieldCode, fieldCode: groupFieldCode });
         }
       });

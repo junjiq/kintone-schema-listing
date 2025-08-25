@@ -157,8 +157,8 @@
       // サブテーブル、グループ以外のフィールド
       if (field.type !== 'SUBTABLE' && field.type !== 'GROUP') {
         csvLines.push([
-          `"${fieldCode}"`,
-          `"${field.label || ''}"`,
+          `"${field.type === 'LABEL' ? '未定義' : fieldCode}"`,
+          `"${field.type === 'LABEL' ? '未定義' : (field.label || '')}"`,
           `"${field.type}"`,
           `"${field.required ? 'はい' : 'いいえ'}"`,
           `"${optionDetails}"`
@@ -230,7 +230,7 @@
           fieldCodes.push(...groupHeaderInfo.fieldCodes);
         } else if (field.type === 'LABEL') {
           // ラベルフィールドの場合
-          headers.push(`${field.label}(${fieldCode})`);
+          headers.push(`未定義(未定義)`);
           fieldCodes.push({ type: 'label', fieldCode: fieldCode });
         } else {
           headers.push(`${field.label}(${fieldCode})`);

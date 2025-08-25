@@ -38,7 +38,7 @@
   /**
    * 検索実行メイン関数
    */
-  const executeQuery = async (appName, recordCount) => {
+  const executeQuery = async (appName, recordCount, showLabels = true) => {
     const resultContainer = document.getElementById('query-result');
 
     if (!resultContainer) {
@@ -80,11 +80,24 @@
       schemaTitle.style.marginTop = '30px';
       resultContainer.appendChild(schemaTitle);
 
-      const formattedSchema = window.DataFormatters.formatSchema(schema);
+      // LABELフィールドの表示設定に基づいてスキーマをフィルタリング
+      let filteredSchema = schema;
+      if (!showLabels) {
+        filteredSchema = {};
+        Object.keys(schema).forEach(fieldCode => {
+          const field = schema[fieldCode];
+          if (field.type !== 'LABEL') {
+            filteredSchema[fieldCode] = field;
+          }
+        });
+        console.log(`LABELフィールドを除外: ${Object.keys(schema).length} → ${Object.keys(filteredSchema).length} フィールド`);
+      }
+
+      const formattedSchema = window.DataFormatters.formatSchema(filteredSchema);
       window.UIHelpers.displaySchemaTable(formattedSchema, resultContainer);
 
       // スキーマCSVエクスポート機能を追加
-      window.CSVExport.addSchemaExportButton(schema, appName, resultContainer);
+      window.CSVExport.addSchemaExportButton(filteredSchema, appName, resultContainer);
 
       // レコードデータ表示
       const recordTitle = document.createElement('h3');
@@ -93,15 +106,15 @@
       recordTitle.style.marginTop = '30px';
       resultContainer.appendChild(recordTitle);
 
-      const formattedRecords = window.DataFormatters.formatRecordData(records, schema);
-      window.UIHelpers.displayRecordTable(formattedRecords, schema, resultContainer);
+      const formattedRecords = window.DataFormatters.formatRecordData(records, filteredSchema);
+      window.UIHelpers.displayRecordTable(formattedRecords, filteredSchema, resultContainer);
 
       // レコードデータCSVエクスポート機能を追加
-      window.CSVExport.addRecordExportButton(formattedRecords, schema, appName, resultContainer);
+      window.CSVExport.addRecordExportButton(formattedRecords, filteredSchema, appName, resultContainer);
 
       // サブテーブルを別表として表示（外部ファイルの関数を使用）
       if (typeof window.displaySubtables === 'function') {
-        window.displaySubtables(formattedRecords, schema, resultContainer);
+        window.displaySubtables(formattedRecords, filteredSchema, resultContainer);
       } else {
         console.warn('サブテーブル表示機能が読み込まれていません。subtableDisplay.jsを先に読み込んでください。');
       }
@@ -262,8 +275,31 @@
     recordCountInput.style.padding = '8px';
     recordCountInput.style.border = '1px solid #ccc';
     recordCountInput.style.borderRadius = '3px';
-    recordCountInput.style.marginBottom = '20px';
+    recordCountInput.style.marginBottom = '10px';
     container.appendChild(recordCountInput);
+
+    // LABELフィールド表示設定
+    const labelDisplayContainer = document.createElement('div');
+    labelDisplayContainer.style.marginBottom = '20px';
+    labelDisplayContainer.style.display = 'flex';
+    labelDisplayContainer.style.alignItems = 'center';
+    labelDisplayContainer.style.gap = '10px';
+
+    const labelDisplayCheckbox = document.createElement('input');
+    labelDisplayCheckbox.type = 'checkbox';
+    labelDisplayCheckbox.id = 'label-display-checkbox';
+    labelDisplayCheckbox.checked = true; // デフォルトで表示
+    labelDisplayCheckbox.style.margin = '0';
+
+    const labelDisplayLabel = document.createElement('label');
+    labelDisplayLabel.textContent = 'LABELフィールドを表示する';
+    labelDisplayLabel.style.fontSize = '14px';
+    labelDisplayLabel.style.cursor = 'pointer';
+    labelDisplayLabel.htmlFor = 'label-display-checkbox';
+
+    labelDisplayContainer.appendChild(labelDisplayCheckbox);
+    labelDisplayContainer.appendChild(labelDisplayLabel);
+    container.appendChild(labelDisplayContainer);
 
     // 検索ボタン
     const searchButton = document.createElement('button');
@@ -279,6 +315,7 @@
     searchButton.onclick = () => {
       const appName = appNameInput.value.trim();
       const recordCount = parseInt(recordCountInput.value);
+      const showLabels = labelDisplayCheckbox.checked;
 
       if (!appName) {
         // より詳細な案内を表示
@@ -304,7 +341,7 @@
       searchButton.disabled = true;
       searchButton.textContent = '検索中...';
 
-      executeQuery(appName, recordCount)
+      executeQuery(appName, recordCount, showLabels)
         .finally(() => {
           searchButton.disabled = false;
           searchButton.textContent = '検索実行';
