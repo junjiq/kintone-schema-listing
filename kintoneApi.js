@@ -147,6 +147,41 @@
 
         walkLayout(layoutResponse.layout || [], null);
 
+        // レイアウトからLABELフィールドを収集
+        const layoutLabels = {};
+        function collectLabels(nodes) {
+          for (const node of nodes) {
+            if (node.type === 'ROW') {
+              for (const f of (node.fields || [])) {
+                if (f.type === 'LABEL') {
+                  const fieldKey = f.code || `label_${f.label ? f.label.replace(/[^a-zA-Z0-9]/g, '_') : 'unknown'}`;
+                  layoutLabels[fieldKey] = {
+                    code: f.code || fieldKey,
+                    label: f.label,
+                    type: f.type,
+                    required: false,
+                    description: '',
+                    fromLayout: true // レイアウトから取得したことを示すフラグ
+                  };
+                }
+              }
+            } else if (node.layout) {
+              collectLabels(node.layout);
+            }
+          }
+        }
+        collectLabels(layoutResponse.layout || []);
+
+        // レイアウトから取得したLABELフィールドをスキーマに追加
+        console.log('レイアウトから収集されたLABELフィールド:', layoutLabels);
+        Object.keys(layoutLabels).forEach(labelCode => {
+          const labelField = layoutLabels[labelCode];
+          if (!schema[labelCode]) {
+            console.log(`LABELフィールド ${labelCode} をスキーマに追加`);
+            schema[labelCode] = labelField;
+          }
+        });
+
         // グループフィールドの詳細情報をスキーマに追加
         console.log('収集されたグループフィールド情報:', groupFields);
         Object.keys(schema).forEach(fieldCode => {
