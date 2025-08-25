@@ -30,18 +30,19 @@
     if (field.type === 'SUBTABLE' && field.fields) {
       Object.keys(field.fields).forEach(subFieldCode => {
         const subField = field.fields[subFieldCode];
-        subFields.push({
-          code: subField.type === 'LABEL' ? '未定義' : subFieldCode,
-          label: subField.type === 'LABEL' ? '未定義' : (subField.label || subFieldCode),
-          type: getFieldTypeLabel(subField.type),
-          rawType: subField.type, // 元のフィールドタイプを保持
-          required: subField.required ? 'はい' : 'いいえ',
-          description: subField.description || '',
-          options: subField.options || null, // オプション情報を保持
-          expression: subField.expression || null, // 計算式を保持
-          referenceTable: subField.referenceTable || null, // 関連レコード一覧情報を保持
-          lookup: subField.lookup || null // ルックアップ情報を保持
-        });
+                 subFields.push({
+           code: subField.type === 'LABEL' ? '未定義' : subFieldCode,
+           label: subField.type === 'LABEL' ? '未定義' : (subField.label || subFieldCode),
+           type: getFieldTypeLabel(subField.type),
+           rawType: subField.type, // 元のフィールドタイプを保持
+           required: subField.required ? 'はい' : 'いいえ',
+           description: subField.description || '',
+           options: subField.options || null, // オプション情報を保持
+           expression: subField.expression || null, // 計算式を保持
+           referenceTable: subField.referenceTable || null, // 関連レコード一覧情報を保持
+           lookup: subField.lookup || null, // ルックアップ情報を保持
+           originalLabel: subField.label || '' // 元のラベル情報を保持（LABELフィールド用）
+         });
       });
     }
 
@@ -121,10 +122,10 @@
         // サブフィールドのオプション詳細
         let subOptionDetails = '';
 
-        // ラベルフィールドの場合
-        if (subField.type === 'LABEL') {
-          subOptionDetails = `表示テキスト: ${subField.label || ''}`;
-        }
+                 // ラベルフィールドの場合
+         if (subField.type === 'LABEL') {
+           subOptionDetails = `表示テキスト: ${subField.originalLabel || subField.label || ''}`;
+         }
         // 計算フィールドの場合
         else if (subField.type === 'CALC') {
           if (subField.expression) {

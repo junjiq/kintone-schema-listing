@@ -73,10 +73,10 @@
       // オプション詳細の生成
       let optionDetails = '';
 
-      // ラベルフィールドの場合
-      if (field.type === 'LABEL') {
-        optionDetails = `表示テキスト: ${field.label || ''}`;
-      }
+             // ラベルフィールドの場合
+       if (field.type === 'LABEL') {
+         optionDetails = `表示テキスト: ${field.originalLabel || field.label || ''}`;
+       }
       // 計算フィールドの場合
       else if (field.type === 'CALC') {
         if (field.expression) {

@@ -35,18 +35,19 @@
       Object.keys(field.fields).forEach(groupFieldCode => {
         const groupField = field.fields[groupFieldCode];
         console.log(`processGroupSchema: グループ内フィールド ${groupFieldCode}:`, groupField);
-        subFields.push({
-          code: groupField.type === 'LABEL' ? '未定義' : groupFieldCode,
-          label: groupField.type === 'LABEL' ? '未定義' : (groupField.label || groupFieldCode),
-          type: getFieldTypeLabel(groupField.type),
-          rawType: groupField.type, // 元のフィールドタイプを保持
-          required: groupField.required ? 'はい' : 'いいえ',
-          description: groupField.description || '',
-          options: groupField.options || null, // オプション情報を保持
-          expression: groupField.expression || null, // 計算式を保持
-          referenceTable: groupField.referenceTable || null, // 関連レコード一覧情報を保持
-          lookup: groupField.lookup || null // ルックアップ情報を保持
-        });
+                 subFields.push({
+           code: groupField.type === 'LABEL' ? '未定義' : groupFieldCode,
+           label: groupField.type === 'LABEL' ? '未定義' : (groupField.label || groupFieldCode),
+           type: getFieldTypeLabel(groupField.type),
+           rawType: groupField.type, // 元のフィールドタイプを保持
+           required: groupField.required ? 'はい' : 'いいえ',
+           description: groupField.description || '',
+           options: groupField.options || null, // オプション情報を保持
+           expression: groupField.expression || null, // 計算式を保持
+           referenceTable: groupField.referenceTable || null, // 関連レコード一覧情報を保持
+           lookup: groupField.lookup || null, // ルックアップ情報を保持
+           originalLabel: groupField.label || '' // 元のラベル情報を保持（LABELフィールド用）
+         });
       });
     }
 
@@ -140,10 +141,10 @@
         // グループ内フィールドのオプション詳細
         let groupOptionDetails = '';
 
-        // ラベルフィールドの場合
-        if (groupField.type === 'LABEL') {
-          groupOptionDetails = `表示テキスト: ${groupField.label || ''}`;
-        }
+                 // ラベルフィールドの場合
+         if (groupField.type === 'LABEL') {
+           groupOptionDetails = `表示テキスト: ${groupField.originalLabel || groupField.label || ''}`;
+         }
         // 計算フィールドの場合
         else if (groupField.type === 'CALC') {
           if (groupField.expression) {

@@ -79,7 +79,8 @@
         expression: field.expression || null, // 計算式を保持
         referenceTable: field.referenceTable || null, // 関連レコード一覧情報を保持
         lookup: field.lookup || null, // ルックアップ情報を保持
-        subFields: []
+        subFields: [],
+        originalLabel: field.label || '' // 元のラベル情報を保持（LABELフィールド用）
       };
 
       // サブテーブルの場合はサブフィールドも処理

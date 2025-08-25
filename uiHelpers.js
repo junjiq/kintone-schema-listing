@@ -221,7 +221,7 @@
 
     // ラベルフィールドの場合
     if (fieldType === 'LABEL') {
-      optionDetails = `表示テキスト: ${field.label || ''}`;
+      optionDetails = `表示テキスト: ${field.originalLabel || field.label || ''}`;
     }
     // 計算フィールドの場合
     else if (fieldType === 'CALC') {
@@ -718,7 +718,9 @@
             const groupField = field.fields[groupFieldCode];
             if (!['SPACER', 'HR'].includes(groupField.type)) {
               const th = document.createElement('th');
-              th.textContent = `${field.label}/${groupField.label}\n(${groupFieldCode})`;
+              const groupFieldLabel = groupField.type === 'LABEL' ? '未定義' : groupField.label;
+              const groupFieldCodeDisplay = groupField.type === 'LABEL' ? '未定義' : groupFieldCode;
+              th.textContent = `${field.label}/${groupFieldLabel}\n(${groupFieldCodeDisplay})`;
               th.style.border = '1px solid #ddd';
               th.style.padding = '8px';
               th.style.textAlign = 'left';
@@ -730,7 +732,9 @@
           });
         } else {
           const th = document.createElement('th');
-          th.textContent = `${field.label}\n(${fieldCode})`;
+          const fieldLabel = field.type === 'LABEL' ? '未定義' : field.label;
+          const fieldCodeDisplay = field.type === 'LABEL' ? '未定義' : fieldCode;
+          th.textContent = `${fieldLabel}\n(${fieldCodeDisplay})`;
           th.style.border = '1px solid #ddd';
           th.style.padding = '8px';
           th.style.textAlign = 'left';
