@@ -138,10 +138,48 @@
         // サブフィールドのオプション詳細
         let subOptionDetails = '';
 
-                 // ラベルフィールドの場合
-         if (subField.type === 'LABEL') {
-           subOptionDetails = `表示テキスト: ${subField.originalLabel || subField.label || ''}`;
-         }
+        // 初期値情報を追加
+        if (subField.defaultValue !== null && subField.defaultValue !== undefined) {
+          const defaultValue = subField.defaultValue;
+          // 改行コードだけの場合は表示しない
+          if (typeof defaultValue === 'string' && defaultValue.trim() === '') {
+            // 改行コードだけの場合は何もしない
+          } else if (subField.type === 'RICH_TEXT' && typeof defaultValue === 'string' && defaultValue.includes('<')) {
+            // リッチエディターでHTMLが含まれている場合、HTMLタグは除去せずにそのまま表示
+            subOptionDetails += `初期値: ${defaultValue}; `;
+          } else if (subField.type === 'RICH_TEXT' && typeof defaultValue === 'string') {
+            // リッチエディターでHTMLタグなしの文字列の場合
+            subOptionDetails += `初期値: ${defaultValue}; `;
+          } else if (subField.type === 'RICH_TEXT') {
+            // リッチエディターの場合、JSON.stringifyを使用
+            subOptionDetails += `初期値: ${JSON.stringify(defaultValue)}; `;
+          } else {
+            subOptionDetails += `初期値: ${JSON.stringify(defaultValue)}; `;
+          }
+        } else if (subField.options && subField.options.defaultValue !== null && subField.options.defaultValue !== undefined) {
+          // リッチエディターなど、optionsの中にdefaultValueがある場合
+          const defaultValue = subField.options.defaultValue;
+          // 改行コードだけの場合は表示しない
+          if (typeof defaultValue === 'string' && defaultValue.trim() === '') {
+            // 改行コードだけの場合は何もしない
+          } else if (subField.type === 'RICH_TEXT' && typeof defaultValue === 'string' && defaultValue.includes('<')) {
+            // リッチエディターでHTMLが含まれている場合、HTMLタグは除去せずにそのまま表示
+            subOptionDetails += `初期値: ${defaultValue}; `;
+          } else if (subField.type === 'RICH_TEXT' && typeof defaultValue === 'string') {
+            // リッチエディターでHTMLタグなしの文字列の場合
+            subOptionDetails += `初期値: ${defaultValue}; `;
+          } else if (subField.type === 'RICH_TEXT') {
+            // リッチエディターの場合、JSON.stringifyを使用
+            subOptionDetails += `初期値: ${JSON.stringify(defaultValue)}; `;
+          } else {
+            subOptionDetails += `初期値: ${JSON.stringify(defaultValue)}; `;
+          }
+        }
+
+        // ラベルフィールドの場合
+        if (subField.type === 'LABEL') {
+          subOptionDetails += `表示テキスト: ${subField.originalLabel || subField.label || ''}`;
+        }
         // 計算フィールドの場合
         else if (subField.type === 'CALC') {
           if (subField.expression) {
@@ -213,9 +251,15 @@
             );
             subOptionDetails = subChoices.join('; ');
           } else {
-            subOptionDetails = Object.keys(subField.options).map(key =>
-              `${key}=${JSON.stringify(subField.options[key])}`
-            ).join('; ');
+            // リッチエディターなど、複雑なオプション処理が必要な場合は
+            // OptionDetails.generateOptionDetailsTextを使用
+            if (subField.type === 'RICH_TEXT') {
+              subOptionDetails = window.OptionDetails.generateOptionDetailsText(subField);
+            } else {
+              subOptionDetails = Object.keys(subField.options).map(key =>
+                `${key}=${JSON.stringify(subField.options[key])}`
+              ).join('; ');
+            }
           }
         }
 

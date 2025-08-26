@@ -167,10 +167,48 @@
         // グループ内フィールドのオプション詳細
         let groupOptionDetails = '';
 
-                 // ラベルフィールドの場合
-         if (groupField.type === 'LABEL') {
-           groupOptionDetails = `表示テキスト: ${groupField.originalLabel || groupField.label || ''}`;
-         }
+        // 初期値情報を追加
+        if (groupField.defaultValue !== null && groupField.defaultValue !== undefined) {
+          const defaultValue = groupField.defaultValue;
+          // 改行コードだけの場合は表示しない
+          if (typeof defaultValue === 'string' && defaultValue.trim() === '') {
+            // 改行コードだけの場合は何もしない
+          } else if (groupField.type === 'RICH_TEXT' && typeof defaultValue === 'string' && defaultValue.includes('<')) {
+            // リッチエディターでHTMLが含まれている場合、HTMLタグは除去せずにそのまま表示
+            groupOptionDetails += `初期値: ${defaultValue}; `;
+          } else if (groupField.type === 'RICH_TEXT' && typeof defaultValue === 'string') {
+            // リッチエディターでHTMLタグなしの文字列の場合
+            groupOptionDetails += `初期値: ${defaultValue}; `;
+          } else if (groupField.type === 'RICH_TEXT') {
+            // リッチエディターの場合、JSON.stringifyを使用
+            groupOptionDetails += `初期値: ${JSON.stringify(defaultValue)}; `;
+          } else {
+            groupOptionDetails += `初期値: ${JSON.stringify(defaultValue)}; `;
+          }
+        } else if (groupField.options && groupField.options.defaultValue !== null && groupField.options.defaultValue !== undefined) {
+          // リッチエディターなど、optionsの中にdefaultValueがある場合
+          const defaultValue = groupField.options.defaultValue;
+          // 改行コードだけの場合は表示しない
+          if (typeof defaultValue === 'string' && defaultValue.trim() === '') {
+            // 改行コードだけの場合は何もしない
+          } else if (groupField.type === 'RICH_TEXT' && typeof defaultValue === 'string' && defaultValue.includes('<')) {
+            // リッチエディターでHTMLが含まれている場合、HTMLタグは除去せずにそのまま表示
+            groupOptionDetails += `初期値: ${defaultValue}; `;
+          } else if (groupField.type === 'RICH_TEXT' && typeof defaultValue === 'string') {
+            // リッチエディターでHTMLタグなしの文字列の場合
+            groupOptionDetails += `初期値: ${defaultValue}; `;
+          } else if (groupField.type === 'RICH_TEXT') {
+            // リッチエディターの場合、JSON.stringifyを使用
+            groupOptionDetails += `初期値: ${JSON.stringify(defaultValue)}; `;
+          } else {
+            groupOptionDetails += `初期値: ${JSON.stringify(defaultValue)}; `;
+          }
+        }
+
+        // ラベルフィールドの場合
+        if (groupField.type === 'LABEL') {
+          groupOptionDetails += `表示テキスト: ${groupField.originalLabel || groupField.label || ''}`;
+        }
         // 計算フィールドの場合
         else if (groupField.type === 'CALC') {
           if (groupField.expression) {
@@ -240,11 +278,17 @@
             const groupChoices = Object.keys(groupField.options).map(key =>
               `${key}:${groupField.options[key].label || groupField.options[key]}`
             );
-            groupOptionDetails = groupChoices.join('; ');
+            groupOptionDetails += groupChoices.join('; ');
           } else {
-            groupOptionDetails = Object.keys(groupField.options).map(key =>
-              `${key}=${JSON.stringify(groupField.options[key])}`
-            ).join('; ');
+            // リッチエディターなど、複雑なオプション処理が必要な場合は
+            // OptionDetails.generateOptionDetailsTextを使用
+            if (groupField.type === 'RICH_TEXT') {
+              groupOptionDetails += window.OptionDetails.generateOptionDetailsText(groupField);
+            } else {
+              groupOptionDetails += Object.keys(groupField.options).map(key =>
+                `${key}=${JSON.stringify(groupField.options[key])}`
+              ).join('; ');
+            }
           }
         }
 

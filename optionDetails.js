@@ -142,9 +142,8 @@
       if (typeof defaultValue === 'string' && defaultValue.trim() === '') {
         // 改行コードだけの場合は何もしない
       } else if (fieldType === 'RICH_TEXT' && typeof defaultValue === 'string' && defaultValue.includes('<')) {
-        // リッチエディターでHTMLが含まれている場合はタグを除去
-        const textOnly = defaultValue.replace(/<[^>]*>/g, '');
-        optionDetails += `初期値: ${textOnly}; `;
+        // リッチエディターでHTMLが含まれている場合、HTMLタグは除去せずにそのまま表示
+        optionDetails += `初期値: ${defaultValue}; `;
       } else {
         optionDetails += `初期値: ${JSON.stringify(defaultValue)}; `;
       }
@@ -155,9 +154,8 @@
       if (typeof defaultValue === 'string' && defaultValue.trim() === '') {
         // 改行コードだけの場合は何もしない
       } else if (fieldType === 'RICH_TEXT' && typeof defaultValue === 'string' && defaultValue.includes('<')) {
-        // リッチエディターでHTMLが含まれている場合はタグを除去
-        const textOnly = defaultValue.replace(/<[^>]*>/g, '');
-        optionDetails += `初期値: ${textOnly}; `;
+        // リッチエディターでHTMLが含まれている場合、HTMLタグは除去せずにそのまま表示
+        optionDetails += `初期値: ${defaultValue}; `;
       } else if (fieldType === 'RICH_TEXT' && typeof defaultValue === 'string') {
         // リッチエディターでHTMLタグなしの文字列の場合
         optionDetails += `初期値: ${defaultValue}; `;
