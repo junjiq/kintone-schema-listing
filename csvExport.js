@@ -11,8 +11,8 @@
    */
   const getAppDisplayName = (appId) => {
     // UIHelpersのキャッシュを参照
-    if (window.UIHelpers && window.UIHelpers.appNameCache && window.UIHelpers.appNameCache[appId]) {
-      return `${window.UIHelpers.appNameCache[appId]} (${appId})`;
+      if (window.AppCache && window.AppCache.appNameCache && window.AppCache.appNameCache[appId]) {
+    return `${window.AppCache.appNameCache[appId]} (${appId})`;
     }
     return `アプリID: ${appId}`;
   };
@@ -74,7 +74,7 @@
       let optionDetails = '';
 
                    // UIHelpersのテキスト版関数を使用してオプション詳細を生成
-      optionDetails = window.UIHelpers.generateOptionDetailsText(field);
+              optionDetails = window.OptionDetails.generateOptionDetailsText(field);
 
 
 
@@ -122,7 +122,6 @@
     // 各サブテーブルのCSV
     const subtableSections = SubtableFieldProcessor.processSubtableRecordsForCSV(records, schema);
     subtableSections.forEach(section => {
-      csvSections.push(''); // 空行
       csvSections.push(section.title);
       csvSections.push(section.content);
     });

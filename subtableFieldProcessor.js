@@ -11,8 +11,8 @@
    */
   const getAppDisplayName = (appId) => {
     // UIHelpersのキャッシュを参照
-    if (window.UIHelpers && window.UIHelpers.appNameCache && window.UIHelpers.appNameCache[appId]) {
-      return `${window.UIHelpers.appNameCache[appId]} (${appId})`;
+      if (window.AppCache && window.AppCache.appNameCache && window.AppCache.appNameCache[appId]) {
+    return `${window.AppCache.appNameCache[appId]} (${appId})`;
     }
     return `アプリID: ${appId}`;
   };
@@ -158,11 +158,11 @@
             details.push(`関連アプリ: ${appDisplayName}`);
           }
           if (subField.referenceTable && subField.referenceTable.condition) {
-            const formattedCondition = window.UIHelpers.formatReferenceTableCondition(subField.referenceTable.condition);
+            const formattedCondition = window.OptionDetails.formatReferenceTableCondition(subField.referenceTable.condition);
             details.push(`条件: ${formattedCondition}`);
           }
           if (subField.referenceTable && subField.referenceTable.filterCond) {
-            const formattedFilter = window.UIHelpers.formatReferenceTableFilter(subField.referenceTable.filterCond);
+            const formattedFilter = window.OptionDetails.formatReferenceTableFilter(subField.referenceTable.filterCond);
             details.push(`絞り込み: ${formattedFilter}`);
           }
           if (subField.referenceTable && subField.referenceTable.displayFields) {
@@ -170,7 +170,7 @@
             details.push(`表示フィールド: ${displayFieldCodes}`);
           }
           if (subField.referenceTable && subField.referenceTable.sort) {
-            const formattedSort = window.UIHelpers.formatReferenceTableSort(subField.referenceTable.sort);
+            const formattedSort = window.OptionDetails.formatReferenceTableSort(subField.referenceTable.sort);
             details.push(`ソート: ${formattedSort}`);
           }
           subOptionDetails = details.length > 0 ? details.join('; ') : '関連レコード一覧';
@@ -195,11 +195,11 @@
             details.push(`検索対象: ${subField.lookup.lookupPickerFields.join(', ')}`);
           }
           if (subField.lookup.filterCond) {
-            const formattedFilter = window.UIHelpers.formatReferenceTableFilter(subField.lookup.filterCond);
+            const formattedFilter = window.OptionDetails.formatReferenceTableFilter(subField.lookup.filterCond);
             details.push(`絞り込み: ${formattedFilter}`);
           }
           if (subField.lookup.sort) {
-            const formattedSort = window.UIHelpers.formatReferenceTableSort(subField.lookup.sort);
+            const formattedSort = window.OptionDetails.formatReferenceTableSort(subField.lookup.sort);
             details.push(`ソート: ${formattedSort}`);
           }
           subOptionDetails = details.length > 0 ? details.join('; ') : 'ルックアップ';
@@ -256,9 +256,8 @@
       const field = schema[fieldCode];
       const sectionLines = [];
 
-      // セクションヘッダー
-      sectionLines.push(`サブテーブル: ${field.label || fieldCode}`);
-      sectionLines.push('');
+             // セクションヘッダー
+       sectionLines.push(`サブテーブル: ${field.label || fieldCode}`);
 
       // サブテーブルのヘッダー行
       const subFieldCodes = Object.keys(field.fields || {});
@@ -300,8 +299,7 @@
         }
       });
 
-      sectionLines.push(''); // セクション間の空行
-      csvSections.push(sectionLines.join('\n'));
+             csvSections.push(sectionLines.join('\n'));
     });
 
     return csvSections;

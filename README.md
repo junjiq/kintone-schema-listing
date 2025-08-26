@@ -29,8 +29,12 @@ Kintoneアプリケーションのスキーマとデータを検索・表示・�
 3. **subtableFieldProcessor.js** - サブテーブルフィールド処理機能
 4. **dataFormatters.js** - データフォーマット機能
 5. **csvExport.js** - CSV出力機能
-6. **uiHelpers.js** - UI関連のヘルパー機能
-7. **queryTable-main.js** - メイン機能（統合）
+6. **appCache.js** - アプリ名キャッシュ関連の機能
+7. **tableHelpers.js** - テーブル表示・リサイズ関連の機能
+8. **optionDetails.js** - オプション詳細生成関連の機能
+9. **messageHelpers.js** - メッセージ表示関連の機能
+10. **uiHelpers.js** - メインのUIヘルパー機能
+11. **queryTable-main.js** - メイン機能（統合）
 
 ### オプションファイル
 - **subtableDisplay.js** - サブテーブル表示機能
@@ -141,14 +145,39 @@ window.CSVExport = {
 }
 ```
 
-### 6. uiHelpers.js
-- メッセージ表示機能
+### 6. appCache.js
+アプリ名キャッシュ関連の機能を提供します。
+
+**主な機能:**
+- `getAppDisplayName(appId)` - アプリ名をキャッシュから取得
+- `updateAppNameCache()` - アプリ名キャッシュを更新
+
+### 7. tableHelpers.js
+テーブル表示・リサイズ関連の機能を提供します。
+
+**主な機能:**
+- `makeTableResizable(table)` - テーブルカラムのリサイズ機能を追加
+
+### 8. optionDetails.js
+オプション詳細生成関連の機能を提供します。
+
+**主な機能:**
+- `generateOptionDetailsText(field)` - CSV出力用のオプション詳細生成
+- `generateOptionDetails(field)` - UI表示用のオプション詳細生成
+- `formatReferenceTableCondition(condition)` - 関連レコード一覧の条件フォーマット
+- `formatReferenceTableSort(sort)` - 関連レコード一覧のソート条件フォーマット
+- `formatReferenceTableFilter(filterCond)` - 関連レコード一覧の絞り込み条件フォーマット
+
+### 9. messageHelpers.js
+メッセージ表示関連の機能を提供します。
+
+**主な機能:**
+- `showMessage(message, type)` - メッセージ表示
+
+### 10. uiHelpers.js
 - アプリ一覧表示UI
 - スキーマテーブル表示（オプション詳細カラム付き）
 - レコードテーブル表示
-- テーブルカラムリサイズ機能（マウスドラッグ対応）
-- フィールドオプション詳細生成（選択肢、グループ・サブテーブルフィールド数表示）
-- アプリ名表示・キャッシュ機能（関連レコード一覧・ルックアップフィールド用）
 - **画面リセット機能**: アプリ一覧表示時の画面クリア機能
 - **ルックアップフィールド完全対応**: フィールドタイプに関係なくlookupプロパティを持つフィールドを処理
 - **統一されたUI**: フィールドコードカラムのフォントとサイズをフィールド名カラムに統一
@@ -174,7 +203,7 @@ window.UIHelpers = {
 }
 ```
 
-### 7. queryTable-main.js
+### 11. queryTable-main.js
 - メイン統合機能
 - 検索UI作成
 - 依存関係チェック
@@ -267,6 +296,10 @@ Kintoneアプリの「JavaScript/CSSでカスタマイズ」で以下の順序�
 <script src="subtableFieldProcessor.js"></script>
 <script src="dataFormatters.js"></script>
 <script src="csvExport.js"></script>
+<script src="appCache.js"></script>
+<script src="tableHelpers.js"></script>
+<script src="optionDetails.js"></script>
+<script src="messageHelpers.js"></script>
 <script src="uiHelpers.js"></script>
 <script src="queryTable-main.js"></script>
 

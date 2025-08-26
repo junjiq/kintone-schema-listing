@@ -234,18 +234,18 @@
           const appName = await window.KintoneAPI.getAppNameById(currentApp.appId);
           if (appName) {
             appNameInput.value = appName;
-            window.UIHelpers.showMessage(`現在のアプリ "${appName}" (ID: ${currentApp.appId}) が選択されました`, 'success');
+            window.MessageHelpers.showMessage(`現在のアプリ "${appName}" (ID: ${currentApp.appId}) が選択されました`, 'success');
           } else {
             // アプリ名が取得できない場合は、アプリIDを表示
             appNameInput.value = `アプリID: ${currentApp.appId}`;
-            window.UIHelpers.showMessage(`現在のアプリID "${currentApp.appId}" が選択されました（アプリ名の取得に失敗）`, 'warning');
+            window.MessageHelpers.showMessage(`現在のアプリID "${currentApp.appId}" が選択されました（アプリ名の取得に失敗）`, 'warning');
           }
         } else {
-          window.UIHelpers.showMessage('現在のアプリ情報を取得できませんでした', 'error');
+                      window.MessageHelpers.showMessage('現在のアプリ情報を取得できませんでした', 'error');
         }
       } catch (error) {
         console.error('現在のアプリ情報取得エラー:', error);
-        window.UIHelpers.showMessage('現在のアプリ情報の取得中にエラーが発生しました: ' + error.message, 'error');
+                  window.MessageHelpers.showMessage('現在のアプリ情報の取得中にエラーが発生しました: ' + error.message, 'error');
       }
     };
 
@@ -274,7 +274,7 @@
         window.UIHelpers.displayAppList(apps, appNameInput);
 
       } catch (error) {
-        window.UIHelpers.showMessage('アプリ一覧の取得に失敗しました: ' + error.message, 'error');
+        window.MessageHelpers.showMessage('アプリ一覧の取得に失敗しました: ' + error.message, 'error');
       } finally {
         showAppsButton.disabled = false;
         showAppsButton.textContent = 'アプリ一覧を表示';
@@ -364,7 +364,7 @@
         message += '• "アプリ一覧を表示"ボタンでスペース内のアプリから選択\n';
         message += '• 直接アプリ名またはアプリIDを入力';
 
-        window.UIHelpers.showMessage('アプリケーション名またはアプリIDが指定されていません', 'error');
+        window.MessageHelpers.showMessage('アプリケーション名またはアプリIDが指定されていません', 'error');
         alert(message);
         return;
       }
@@ -384,7 +384,7 @@
       }
 
       if (!recordCount || recordCount < 1 || recordCount > 500) {
-        window.UIHelpers.showMessage('レコード数は1〜500の範囲で入力してください', 'error');
+        window.MessageHelpers.showMessage('レコード数は1〜500の範囲で入力してください', 'error');
         return;
       }
 
@@ -447,8 +447,8 @@
   };
 
   // アプリ名キャッシュを初期化
-  if (window.UIHelpers && window.UIHelpers.updateAppNameCache) {
-    window.UIHelpers.updateAppNameCache().catch(error => {
+          if (window.AppCache && window.AppCache.updateAppNameCache) {
+          window.AppCache.updateAppNameCache().catch(error => {
       console.warn('アプリ名キャッシュの初期化に失敗:', error);
     });
   }

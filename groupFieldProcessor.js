@@ -11,8 +11,8 @@
    */
   const getAppDisplayName = (appId) => {
     // UIHelpersのキャッシュを参照
-    if (window.UIHelpers && window.UIHelpers.appNameCache && window.UIHelpers.appNameCache[appId]) {
-      return `${window.UIHelpers.appNameCache[appId]} (${appId})`;
+      if (window.AppCache && window.AppCache.appNameCache && window.AppCache.appNameCache[appId]) {
+    return `${window.AppCache.appNameCache[appId]} (${appId})`;
     }
     return `アプリID: ${appId}`;
   };
@@ -187,11 +187,11 @@
             details.push(`関連アプリ: ${appDisplayName}`);
           }
           if (groupField.referenceTable && groupField.referenceTable.condition) {
-            const formattedCondition = window.UIHelpers.formatReferenceTableCondition(groupField.referenceTable.condition);
+            const formattedCondition = window.OptionDetails.formatReferenceTableCondition(groupField.referenceTable.condition);
             details.push(`条件: ${formattedCondition}`);
           }
           if (groupField.referenceTable && groupField.referenceTable.filterCond) {
-            const formattedFilter = window.UIHelpers.formatReferenceTableFilter(groupField.referenceTable.filterCond);
+            const formattedFilter = window.OptionDetails.formatReferenceTableFilter(groupField.referenceTable.filterCond);
             details.push(`絞り込み: ${formattedFilter}`);
           }
           if (groupField.referenceTable && groupField.referenceTable.displayFields) {
@@ -199,7 +199,7 @@
             details.push(`表示フィールド: ${displayFieldCodes}`);
           }
           if (groupField.referenceTable && groupField.referenceTable.sort) {
-            const formattedSort = window.UIHelpers.formatReferenceTableSort(groupField.referenceTable.sort);
+            const formattedSort = window.OptionDetails.formatReferenceTableSort(groupField.referenceTable.sort);
             details.push(`ソート: ${formattedSort}`);
           }
           groupOptionDetails = details.length > 0 ? details.join('; ') : '関連レコード一覧';
@@ -224,11 +224,11 @@
             details.push(`検索対象: ${groupField.lookup.lookupPickerFields.join(', ')}`);
           }
           if (groupField.lookup.filterCond) {
-            const formattedFilter = window.UIHelpers.formatReferenceTableFilter(groupField.lookup.filterCond);
+            const formattedFilter = window.OptionDetails.formatReferenceTableFilter(groupField.lookup.filterCond);
             details.push(`絞り込み: ${formattedFilter}`);
           }
           if (groupField.lookup.sort) {
-            const formattedSort = window.UIHelpers.formatReferenceTableSort(groupField.lookup.sort);
+            const formattedSort = window.OptionDetails.formatReferenceTableSort(groupField.lookup.sort);
             details.push(`ソート: ${formattedSort}`);
           }
           groupOptionDetails = details.length > 0 ? details.join('; ') : 'ルックアップ';

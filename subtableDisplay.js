@@ -198,11 +198,11 @@
       subtableSection.appendChild(table);
 
       // リサイズ機能を有効化（UIHelpersのmakeTableResizable関数を使用）
-      if (typeof window.UIHelpers !== 'undefined' && typeof window.UIHelpers.makeTableResizable === 'function') {
-        window.UIHelpers.makeTableResizable(table);
+      if (typeof window.TableHelpers !== 'undefined' && typeof window.TableHelpers.makeTableResizable === 'function') {
+        window.TableHelpers.makeTableResizable(table);
         console.log(`サブテーブル ${subtableFieldCode} にリサイズ機能を適用しました`);
       } else {
-        console.warn('UIHelpers.makeTableResizable が利用できません。uiHelpers.js を先に読み込んでください。');
+        console.warn('TableHelpers.makeTableResizable が利用できません。tableHelpers.js を先に読み込んでください。');
       }
 
       // 統計情報を追加
