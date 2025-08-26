@@ -41,6 +41,7 @@
            expression: subField.expression || null, // 計算式を保持
            referenceTable: subField.referenceTable || null, // 関連レコード一覧情報を保持
            lookup: subField.lookup || null, // ルックアップ情報を保持
+           defaultValue: subField.defaultValue || null, // 初期値情報を保持
            originalLabel: subField.label || '' // 元のラベル情報を保持（LABELフィールド用）
          });
       });

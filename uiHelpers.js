@@ -219,18 +219,23 @@
     let optionDetails = '';
     const fieldType = field.rawType || field.type;
 
+    // 初期値情報を追加
+    if (field.defaultValue !== null && field.defaultValue !== undefined) {
+      optionDetails += `初期値: ${JSON.stringify(field.defaultValue)}\n`;
+    }
+
     // ラベルフィールドの場合
     if (fieldType === 'LABEL') {
-      optionDetails = `表示テキスト: ${field.originalLabel || field.label || ''}`;
+      optionDetails += `表示テキスト: ${field.originalLabel || field.label || ''}`;
     }
     // 計算フィールドの場合
     else if (fieldType === 'CALC') {
       if (field.expression) {
-        optionDetails = `計算式: ${field.expression}`;
+        optionDetails += `計算式: ${field.expression}`;
       } else if (field.options && field.options.expression) {
-        optionDetails = `計算式: ${field.options.expression}`;
+        optionDetails += `計算式: ${field.options.expression}`;
       } else {
-        optionDetails = '計算フィールド';
+        optionDetails += '計算フィールド';
       }
     }
     // 関連レコード一覧フィールドの場合
@@ -254,7 +259,7 @@
         const sortInfo = field.referenceTable.sort;
         details.push(`ソート: ${formatReferenceTableSort(sortInfo)}`);
       }
-      optionDetails = details.length > 0 ? details.join('\n') : '関連レコード一覧';
+      optionDetails += details.length > 0 ? details.join('\n') : '関連レコード一覧';
     }
          // ルックアップフィールドの場合（lookupプロパティが設定されている場合）
      else if (field.lookup) {
@@ -282,17 +287,17 @@
          const sortInfo = field.lookup.sort;
          details.push(`ソート: ${formatReferenceTableSort(sortInfo)}`);
        }
-       optionDetails = details.length > 0 ? details.join('\n') : 'ルックアップ';
+       optionDetails += details.length > 0 ? details.join('\n') : 'ルックアップ';
      }
     // グループフィールドの場合
     else if (fieldType === 'GROUP') {
       const groupFieldCount = field.subFields ? field.subFields.length : 0;
-      optionDetails = `グループ内フィールド数: ${groupFieldCount}`;
+      optionDetails += `グループ内フィールド数: ${groupFieldCount}`;
     }
     // サブテーブルフィールドの場合
     else if (fieldType === 'SUBTABLE') {
       const subFieldCount = field.subFields ? field.subFields.length : 0;
-      optionDetails = `サブフィールド数: ${subFieldCount}`;
+      optionDetails += `サブフィールド数: ${subFieldCount}`;
     }
     // 通常のオプション詳細処理
     else if (field.options) {
@@ -301,10 +306,23 @@
         // 選択肢型フィールドの場合
         const choices = Object.keys(field.options).map(key =>
           `${key}:${field.options[key].label || field.options[key]}`);
-        optionDetails = choices.join('\n');
+        optionDetails += choices.join('\n');
+      } else if (fieldType === 'RICH_TEXT') {
+        // リッチエディターの場合、HTMLタグを除去してテキストのみ表示
+        const options = Object.keys(field.options).map(key => {
+          const value = field.options[key];
+          if (key === 'defaultValue' && typeof value === 'string' && value.includes('<')) {
+            // HTMLタグを除去してテキストのみを表示
+            const textOnly = value.replace(/<[^>]*>/g, '');
+            return `${key}: ${textOnly}`;
+          } else {
+            return `${key}=${JSON.stringify(value)}`;
+          }
+        });
+        optionDetails += options.join('\n');
       } else {
         // その他のオプション
-        optionDetails = Object.keys(field.options).map(key =>
+        optionDetails += Object.keys(field.options).map(key =>
           `${key}=${JSON.stringify(field.options[key])}`).join('\n');
       }
     }
@@ -317,24 +335,35 @@
    */
   const generateOptionDetails = (field) => {
     const fieldType = field.rawType || field.type;
+    let details = [];
+
+    // 初期値情報を追加
+    if (field.defaultValue !== null && field.defaultValue !== undefined) {
+      const defaultValue = field.defaultValue;
+      if (typeof defaultValue === 'string' && defaultValue.includes('<')) {
+        // HTMLが含まれている場合はレンダリング
+        details.push(`<strong>初期値:</strong><div style="border: 1px solid #ddd; padding: 5px; margin: 2px 0; background: #f9f9f9;">${defaultValue}</div>`);
+      } else {
+        details.push(`<strong>初期値:</strong> ${JSON.stringify(defaultValue)}`);
+      }
+    }
 
     // ラベルフィールドの場合
     if (fieldType === 'LABEL') {
-      return `<strong>表示テキスト:</strong> ${field.originalLabel || field.label || ''}`;
+      details.push(`<strong>表示テキスト:</strong> ${field.originalLabel || field.label || ''}`);
     }
     // 計算フィールドの場合
     else if (fieldType === 'CALC') {
       if (field.expression) {
-        return `<strong>計算式:</strong> ${field.expression}`;
+        details.push(`<strong>計算式:</strong> ${field.expression}`);
       } else if (field.options && field.options.expression) {
-        return `<strong>計算式:</strong> ${field.options.expression}`;
+        details.push(`<strong>計算式:</strong> ${field.options.expression}`);
       } else {
-        return '計算フィールド';
+        details.push('計算フィールド');
       }
     }
     // 関連レコード一覧フィールドの場合
     else if (fieldType === 'REFERENCE_TABLE') {
-      const details = [];
       if (field.referenceTable && field.referenceTable.relatedApp) {
         const appDisplayName = getAppDisplayName(field.referenceTable.relatedApp.app);
         details.push(`<strong>関連アプリ:</strong> ${appDisplayName}`);
@@ -353,11 +382,12 @@
         const sortInfo = field.referenceTable.sort;
         details.push(`<strong>ソート:</strong> ${formatReferenceTableSort(sortInfo)}`);
       }
-      return details.length > 0 ? details.join('<br>') : '関連レコード一覧';
+      if (details.length === 0) {
+        details.push('関連レコード一覧');
+      }
     }
     // ルックアップフィールドの場合（lookupプロパティが設定されている場合）
     else if (field.lookup) {
-      const details = [];
       if (field.lookup.relatedApp) {
         const appDisplayName = getAppDisplayName(field.lookup.relatedApp.app);
         details.push(`<strong>参照アプリ:</strong> ${appDisplayName}`);
@@ -381,17 +411,19 @@
         const sortInfo = field.lookup.sort;
         details.push(`<strong>ソート:</strong> ${formatReferenceTableSort(sortInfo)}`);
       }
-      return details.length > 0 ? details.join('<br>') : 'ルックアップ';
+      if (details.length === 0) {
+        details.push('ルックアップ');
+      }
     }
     // グループフィールドの場合
     else if (fieldType === 'GROUP') {
       const groupFieldCount = field.subFields ? field.subFields.length : 0;
-      return `<strong>グループ内フィールド数:</strong> ${groupFieldCount}`;
+      details.push(`<strong>グループ内フィールド数:</strong> ${groupFieldCount}`);
     }
     // サブテーブルフィールドの場合
     else if (fieldType === 'SUBTABLE') {
       const subFieldCount = field.subFields ? field.subFields.length : 0;
-      return `<strong>サブフィールド数:</strong> ${subFieldCount}`;
+      details.push(`<strong>サブフィールド数:</strong> ${subFieldCount}`);
     }
     // 通常のオプション詳細処理
     else if (field.options) {
@@ -400,16 +432,35 @@
         // 選択肢型フィールドの場合
         const choices = Object.keys(field.options).map(key =>
           `<strong>${key}:</strong>${field.options[key].label || field.options[key]}`);
-        return choices.join('<br>');
+        details.push(choices.join('<br>'));
+      } else if (fieldType === 'RICH_TEXT') {
+        // リッチエディターの場合、HTMLをレンダリング
+        const options = Object.keys(field.options).map(key => {
+          const value = field.options[key];
+          if (key === 'defaultValue' && typeof value === 'string' && value.includes('<')) {
+            // HTMLが含まれている場合はレンダリング
+            return `<strong>${key}:</strong><div style="border: 1px solid #ddd; padding: 5px; margin: 2px 0; background: #f9f9f9;">${value}</div>`;
+          } else {
+            return `<strong>${key}=</strong>${JSON.stringify(value)}`;
+          }
+        });
+        details.push(options.join('<br>'));
       } else {
-        // その他のオプション
-        const options = Object.keys(field.options).map(key =>
-          `<strong>${key}=</strong>${JSON.stringify(field.options[key])}`);
-        return options.join('<br>');
+        // その他のオプション（すべてのフィールドタイプでプロパティ名をボールド表示）
+        const options = Object.keys(field.options).map(key => {
+          const value = field.options[key];
+          if (typeof value === 'string' && value.includes('<')) {
+            // HTMLが含まれている場合はレンダリング
+            return `<strong>${key}:</strong><div style="border: 1px solid #ddd; padding: 5px; margin: 2px 0; background: #f9f9f9;">${value}</div>`;
+          } else {
+            return `<strong>${key}=</strong>${JSON.stringify(value)}`;
+          }
+        });
+        details.push(options.join('<br>'));
       }
     }
 
-    return '';
+    return details.join('<br>');
   };
 
   /**
@@ -884,30 +935,37 @@
                   cell.style.fontStyle = 'italic';
                   cell.style.whiteSpace = 'pre-line';
                   cell.style.fontSize = '12px';
-                } else if (value !== null && value !== undefined && value !== '') {
-                  if (Array.isArray(value)) {
-                    cellContent = value.join(', ');
-                    cell.textContent = cellContent;
-                    cell.style.whiteSpace = 'pre-line';
-                    cell.style.fontSize = '12px';
-                  } else if (typeof value === 'object' && value !== null) {
-                    // システムフィールド（更新者、作成者など）の処理
-                    if (groupField.type === 'MODIFIER' || groupField.type === 'CREATOR') {
-                      cellContent = value.name || value.code || JSON.stringify(value);
-                    } else if (groupField.type === 'UPDATED_TIME' || groupField.type === 'CREATED_TIME') {
-                      cellContent = value.value || String(value);
-                    } else {
-                      cellContent = JSON.stringify(value);
-                    }
-                    cell.textContent = cellContent;
-                    cell.style.whiteSpace = 'pre-line';
-                    cell.style.fontSize = '12px';
-                  } else {
-                    cellContent = String(value);
-                    cell.textContent = cellContent;
-                    cell.style.whiteSpace = 'pre-line';
-                    cell.style.fontSize = '12px';
-                  }
+                                 } else if (value !== null && value !== undefined && value !== '') {
+                   if (Array.isArray(value)) {
+                     cellContent = value.join(', ');
+                     cell.textContent = cellContent;
+                     cell.style.whiteSpace = 'pre-line';
+                     cell.style.fontSize = '12px';
+                   } else if (typeof value === 'object' && value !== null) {
+                     // システムフィールド（更新者、作成者など）の処理
+                     if (groupField.type === 'MODIFIER' || groupField.type === 'CREATOR') {
+                       cellContent = value.name || value.code || JSON.stringify(value);
+                     } else if (groupField.type === 'UPDATED_TIME' || groupField.type === 'CREATED_TIME') {
+                       cellContent = value.value || String(value);
+                     } else {
+                       cellContent = JSON.stringify(value);
+                     }
+                     cell.textContent = cellContent;
+                     cell.style.whiteSpace = 'pre-line';
+                     cell.style.fontSize = '12px';
+                   } else {
+                     cellContent = String(value);
+                     // リッチエディターの場合、HTMLをレンダリング
+                     if (groupField.type === 'RICH_TEXT' && cellContent.includes('<')) {
+                       cell.innerHTML = cellContent;
+                       cell.style.whiteSpace = 'pre-line';
+                       cell.style.fontSize = '12px';
+                     } else {
+                       cell.textContent = cellContent;
+                       cell.style.whiteSpace = 'pre-line';
+                       cell.style.fontSize = '12px';
+                     }
+                   }
                 } else {
                   cellContent = '-';
                   cell.textContent = cellContent;
@@ -945,30 +1003,37 @@
               cell.style.fontStyle = 'italic';
               cell.style.whiteSpace = 'pre-line';
               cell.style.fontSize = '12px';
-            } else if (value !== null && value !== undefined && value !== '') {
-              if (Array.isArray(value)) {
-                cellContent = value.join(', ');
-                cell.textContent = cellContent;
-                cell.style.whiteSpace = 'pre-line';
-                cell.style.fontSize = '12px';
-              } else if (typeof value === 'object' && value !== null) {
-                // システムフィールド（更新者、作成者など）の処理
-                if (field.type === 'MODIFIER' || field.type === 'CREATOR') {
-                  cellContent = value.name || value.code || JSON.stringify(value);
-                } else if (field.type === 'UPDATED_TIME' || field.type === 'CREATED_TIME') {
-                  cellContent = value.value || String(value);
-                } else {
-                  cellContent = JSON.stringify(value);
-                }
-                cell.textContent = cellContent;
-                cell.style.whiteSpace = 'pre-line';
-                cell.style.fontSize = '12px';
-              } else {
-                cellContent = String(value);
-                cell.textContent = cellContent;
-                cell.style.whiteSpace = 'pre-line';
-                cell.style.fontSize = '12px';
-              }
+                           } else if (value !== null && value !== undefined && value !== '') {
+                 if (Array.isArray(value)) {
+                   cellContent = value.join(', ');
+                   cell.textContent = cellContent;
+                   cell.style.whiteSpace = 'pre-line';
+                   cell.style.fontSize = '12px';
+                 } else if (typeof value === 'object' && value !== null) {
+                   // システムフィールド（更新者、作成者など）の処理
+                   if (field.type === 'MODIFIER' || field.type === 'CREATOR') {
+                     cellContent = value.name || value.code || JSON.stringify(value);
+                   } else if (field.type === 'UPDATED_TIME' || field.type === 'CREATED_TIME') {
+                     cellContent = value.value || String(value);
+                   } else {
+                     cellContent = JSON.stringify(value);
+                   }
+                   cell.textContent = cellContent;
+                   cell.style.whiteSpace = 'pre-line';
+                   cell.style.fontSize = '12px';
+                 } else {
+                   cellContent = String(value);
+                   // リッチエディターの場合、HTMLをレンダリング
+                   if (field.type === 'RICH_TEXT' && cellContent.includes('<')) {
+                     cell.innerHTML = cellContent;
+                     cell.style.whiteSpace = 'pre-line';
+                     cell.style.fontSize = '12px';
+                   } else {
+                     cell.textContent = cellContent;
+                     cell.style.whiteSpace = 'pre-line';
+                     cell.style.fontSize = '12px';
+                   }
+                 }
             } else {
               cellContent = '-';
               cell.textContent = cellContent;

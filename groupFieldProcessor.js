@@ -46,6 +46,7 @@
            expression: groupField.expression || null, // 計算式を保持
            referenceTable: groupField.referenceTable || null, // 関連レコード一覧情報を保持
            lookup: groupField.lookup || null, // ルックアップ情報を保持
+           defaultValue: groupField.defaultValue || null, // 初期値情報を保持
            originalLabel: groupField.label || '' // 元のラベル情報を保持（LABELフィールド用）
          });
       });
