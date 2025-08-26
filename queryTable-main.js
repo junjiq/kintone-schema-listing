@@ -100,7 +100,25 @@
         Object.keys(schema).forEach(fieldCode => {
           const field = schema[fieldCode];
           if (field.type !== 'LABEL') {
-            filteredSchema[fieldCode] = field;
+            // グループフィールドの場合、グループ内のLABELフィールドも除外
+            if (field.type === 'GROUP' && field.fields) {
+              const filteredGroupFields = {};
+              Object.keys(field.fields).forEach(groupFieldCode => {
+                const groupField = field.fields[groupFieldCode];
+                if (groupField.type !== 'LABEL') {
+                  filteredGroupFields[groupFieldCode] = groupField;
+                }
+              });
+              // グループ内にフィールドが残っている場合のみ追加
+              if (Object.keys(filteredGroupFields).length > 0) {
+                filteredSchema[fieldCode] = {
+                  ...field,
+                  fields: filteredGroupFields
+                };
+              }
+            } else {
+              filteredSchema[fieldCode] = field;
+            }
           }
         });
         console.log(`LABELフィールドを除外: ${Object.keys(schema).length} → ${Object.keys(filteredSchema).length} フィールド`);
@@ -111,7 +129,25 @@
       Object.keys(schema).forEach(fieldCode => {
         const field = schema[fieldCode];
         if (field.type !== 'LABEL') {
-          recordDisplaySchema[fieldCode] = field;
+          // グループフィールドの場合、グループ内のLABELフィールドも除外
+          if (field.type === 'GROUP' && field.fields) {
+            const filteredGroupFields = {};
+            Object.keys(field.fields).forEach(groupFieldCode => {
+              const groupField = field.fields[groupFieldCode];
+              if (groupField.type !== 'LABEL') {
+                filteredGroupFields[groupFieldCode] = groupField;
+              }
+            });
+            // グループ内にフィールドが残っている場合のみ追加
+            if (Object.keys(filteredGroupFields).length > 0) {
+              recordDisplaySchema[fieldCode] = {
+                ...field,
+                fields: filteredGroupFields
+              };
+            }
+          } else {
+            recordDisplaySchema[fieldCode] = field;
+          }
         }
       });
       console.log(`レコード表示用スキーマ: ${Object.keys(recordDisplaySchema).length} フィールド（LABELフィールド除外）`);

@@ -365,8 +365,17 @@
             const groupField = field.fields[groupFieldCode];
             if (!['SPACER', 'HR'].includes(groupField.type)) {
               const th = document.createElement('th');
-              const groupFieldLabel = groupField.type === 'LABEL' ? '未定義' : groupField.label;
-              const groupFieldCodeDisplay = groupField.type === 'LABEL' ? '未定義' : groupFieldCode;
+
+              // フィールドコードとラベルの設定
+              let groupFieldLabel = groupField.label || groupFieldCode;
+              let groupFieldCodeDisplay = groupFieldCode;
+
+              // LABELフィールドの場合は特別処理
+              if (groupField.type === 'LABEL') {
+                groupFieldLabel = 'FN未定義';
+                groupFieldCodeDisplay = 'FC未定義';
+              }
+
               th.textContent = `${field.label}/${groupFieldLabel}\n(${groupFieldCodeDisplay})`;
               th.style.border = '1px solid #ddd';
               th.style.padding = '8px';
@@ -379,8 +388,17 @@
           });
         } else {
           const th = document.createElement('th');
-          const fieldLabel = field.type === 'LABEL' ? '未定義' : field.label;
-          const fieldCodeDisplay = field.type === 'LABEL' ? '未定義' : fieldCode;
+
+          // フィールドコードとラベルの設定
+          let fieldLabel = field.label || fieldCode;
+          let fieldCodeDisplay = fieldCode;
+
+          // LABELフィールドの場合は特別処理
+          if (field.type === 'LABEL') {
+            fieldLabel = 'FN未定義';
+            fieldCodeDisplay = 'FC未定義';
+          }
+
           th.textContent = `${fieldLabel}\n(${fieldCodeDisplay})`;
           th.style.border = '1px solid #ddd';
           th.style.padding = '8px';
@@ -427,7 +445,7 @@
                 let cellContent = '';
 
                 if (groupField.type === 'LABEL') {
-                  cellContent = groupField.label || '';
+                  cellContent = groupField.label || 'FN未定義';
                   cell.textContent = cellContent;
                   cell.style.color = '#666';
                   cell.style.fontStyle = 'italic';

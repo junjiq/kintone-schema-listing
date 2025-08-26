@@ -69,8 +69,8 @@
       const field = schema[fieldCode];
 
       const fieldInfo = {
-        code: field.type === 'LABEL' ? '未定義' : fieldCode,
-        label: field.type === 'LABEL' ? '未定義' : (field.label || fieldCode),
+        code: field.type === 'LABEL' ? 'FC未定義' : fieldCode,
+        label: field.type === 'LABEL' ? 'FN未定義' : (field.label || fieldCode),
         type: getFieldTypeLabel(field.type),
         rawType: field.type, // 元のフィールドタイプを保持
         required: field.required ? 'はい' : 'いいえ',

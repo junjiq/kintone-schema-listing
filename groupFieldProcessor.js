@@ -35,20 +35,31 @@
       Object.keys(field.fields).forEach(groupFieldCode => {
         const groupField = field.fields[groupFieldCode];
         console.log(`processGroupSchema: グループ内フィールド ${groupFieldCode}:`, groupField);
-                 subFields.push({
-           code: groupField.type === 'LABEL' ? '未定義' : groupFieldCode,
-           label: groupField.type === 'LABEL' ? '未定義' : (groupField.label || groupFieldCode),
-           type: getFieldTypeLabel(groupField.type),
-           rawType: groupField.type, // 元のフィールドタイプを保持
-           required: groupField.required ? 'はい' : 'いいえ',
-           description: groupField.description || '',
-           options: groupField.options || null, // オプション情報を保持
-           expression: groupField.expression || null, // 計算式を保持
-           referenceTable: groupField.referenceTable || null, // 関連レコード一覧情報を保持
-           lookup: groupField.lookup || null, // ルックアップ情報を保持
-           defaultValue: groupField.defaultValue || null, // 初期値情報を保持
-           originalLabel: groupField.label || '' // 元のラベル情報を保持（LABELフィールド用）
-         });
+
+        // フィールドコードとラベルの設定
+        let fieldCode = groupFieldCode;
+        let fieldLabel = groupField.label || groupFieldCode;
+
+        // LABELフィールドの場合は特別処理
+        if (groupField.type === 'LABEL') {
+          fieldCode = 'FC未定義';
+          fieldLabel = 'FN未定義';
+        }
+
+        subFields.push({
+          code: fieldCode,
+          label: fieldLabel,
+          type: getFieldTypeLabel(groupField.type),
+          rawType: groupField.type, // 元のフィールドタイプを保持
+          required: groupField.required ? 'はい' : 'いいえ',
+          description: groupField.description || '',
+          options: groupField.options || null, // オプション情報を保持
+          expression: groupField.expression || null, // 計算式を保持
+          referenceTable: groupField.referenceTable || null, // 関連レコード一覧情報を保持
+          lookup: groupField.lookup || null, // ルックアップ情報を保持
+          defaultValue: groupField.defaultValue || null, // 初期値情報を保持
+          originalLabel: groupField.label || '' // 元のラベル情報を保持（LABELフィールド用）
+        });
       });
     }
 
@@ -71,7 +82,10 @@
         const groupFieldValue = record[groupFieldCode];
         const groupField = field.fields[groupFieldCode];
 
-        if (groupFieldValue) {
+        // LABELフィールドの場合は特別処理
+        if (groupField.type === 'LABEL') {
+          groupData[groupFieldCode] = groupField.label || 'FN未定義';
+        } else if (groupFieldValue) {
           groupData[groupFieldCode] = formatGroupFieldValue(groupFieldValue, groupField);
         } else {
           // 値が存在しない場合の処理
@@ -294,9 +308,19 @@
 
 
 
+        // フィールドコードとラベルの設定
+        let fieldCode = groupFieldCode;
+        let fieldLabel = groupField.label || groupFieldCode;
+
+        // LABELフィールドの場合は特別処理
+        if (groupField.type === 'LABEL') {
+          fieldCode = 'FC未定義';
+          fieldLabel = 'FN未定義';
+        }
+
         csvLines.push([
-          `"${groupField.type === 'LABEL' ? '未定義' : groupFieldCode}"`,
-          `"${groupField.type === 'LABEL' ? '未定義' : (groupField.label || '')}"`,
+          `"${fieldCode}"`,
+          `"${fieldLabel}"`,
           `"${groupField.type}"`,
           `"${groupField.required ? 'はい' : 'いいえ'}"`,
           `"${groupOptionDetails}"`
@@ -321,8 +345,16 @@
       Object.keys(field.fields).forEach(groupFieldCode => {
         const groupField = field.fields[groupFieldCode];
         if (!['SPACER', 'HR'].includes(groupField.type)) {
-          const groupFieldLabel = groupField.type === 'LABEL' ? '未定義' : groupField.label;
-          const groupFieldCodeDisplay = groupField.type === 'LABEL' ? '未定義' : groupFieldCode;
+          // フィールドコードとラベルの設定
+          let groupFieldLabel = groupField.label || groupFieldCode;
+          let groupFieldCodeDisplay = groupFieldCode;
+
+          // LABELフィールドの場合は特別処理
+          if (groupField.type === 'LABEL') {
+            groupFieldLabel = 'FN未定義';
+            groupFieldCodeDisplay = 'FC未定義';
+          }
+
           headers.push(`${field.label}/${groupFieldLabel}(${groupFieldCodeDisplay})`);
           fieldCodes.push({ type: 'group', parentCode: fieldCode, fieldCode: groupFieldCode });
         }
