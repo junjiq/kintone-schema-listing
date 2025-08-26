@@ -890,6 +890,18 @@
                     cell.textContent = cellContent;
                     cell.style.whiteSpace = 'pre-line';
                     cell.style.fontSize = '12px';
+                  } else if (typeof value === 'object' && value !== null) {
+                    // システムフィールド（更新者、作成者など）の処理
+                    if (groupField.type === 'MODIFIER' || groupField.type === 'CREATOR') {
+                      cellContent = value.name || value.code || JSON.stringify(value);
+                    } else if (groupField.type === 'UPDATED_TIME' || groupField.type === 'CREATED_TIME') {
+                      cellContent = value.value || String(value);
+                    } else {
+                      cellContent = JSON.stringify(value);
+                    }
+                    cell.textContent = cellContent;
+                    cell.style.whiteSpace = 'pre-line';
+                    cell.style.fontSize = '12px';
                   } else {
                     cellContent = String(value);
                     cell.textContent = cellContent;
@@ -936,6 +948,18 @@
             } else if (value !== null && value !== undefined && value !== '') {
               if (Array.isArray(value)) {
                 cellContent = value.join(', ');
+                cell.textContent = cellContent;
+                cell.style.whiteSpace = 'pre-line';
+                cell.style.fontSize = '12px';
+              } else if (typeof value === 'object' && value !== null) {
+                // システムフィールド（更新者、作成者など）の処理
+                if (field.type === 'MODIFIER' || field.type === 'CREATOR') {
+                  cellContent = value.name || value.code || JSON.stringify(value);
+                } else if (field.type === 'UPDATED_TIME' || field.type === 'CREATED_TIME') {
+                  cellContent = value.value || String(value);
+                } else {
+                  cellContent = JSON.stringify(value);
+                }
                 cell.textContent = cellContent;
                 cell.style.whiteSpace = 'pre-line';
                 cell.style.fontSize = '12px';

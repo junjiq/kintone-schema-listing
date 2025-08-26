@@ -200,6 +200,23 @@
         if (fieldInfo.type !== 'label' && !(fieldInfo.type === 'group' && parentField && parentField.fields && parentField.fields[fieldInfo.fieldCode] && parentField.fields[fieldInfo.fieldCode].type === 'LABEL') && value !== null && value !== undefined && value !== '') {
           if (Array.isArray(value)) {
             cellContent = value.join(', ');
+          } else if (typeof value === 'object' && value !== null) {
+            // システムフィールド（更新者、作成者など）の処理
+            const field = fieldInfo.type === 'group' ?
+              (parentField && parentField.fields && parentField.fields[fieldInfo.fieldCode] ? parentField.fields[fieldInfo.fieldCode] : null) :
+              schema[fieldInfo.fieldCode];
+
+            if (field) {
+              if (field.type === 'MODIFIER' || field.type === 'CREATOR') {
+                cellContent = value.name || value.code || JSON.stringify(value);
+              } else if (field.type === 'UPDATED_TIME' || field.type === 'CREATED_TIME') {
+                cellContent = value.value || String(value);
+              } else {
+                cellContent = JSON.stringify(value);
+              }
+            } else {
+              cellContent = JSON.stringify(value);
+            }
           } else {
             cellContent = String(value);
           }
