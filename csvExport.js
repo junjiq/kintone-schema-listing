@@ -73,84 +73,8 @@
       // オプション詳細の生成
       let optionDetails = '';
 
-             // ラベルフィールドの場合
-       if (field.type === 'LABEL') {
-         optionDetails = `表示テキスト: ${field.originalLabel || field.label || ''}`;
-       }
-      // 計算フィールドの場合
-      else if (field.type === 'CALC') {
-        if (field.expression) {
-          optionDetails = `計算式: ${field.expression}`;
-        } else {
-          optionDetails = '計算フィールド';
-        }
-      }
-      // 関連レコード一覧フィールドの場合
-      else if (field.type === 'REFERENCE_TABLE') {
-        const details = [];
-        if (field.referenceTable && field.referenceTable.relatedApp) {
-          const appDisplayName = getAppDisplayName(field.referenceTable.relatedApp.app);
-          details.push(`関連アプリ: ${appDisplayName}`);
-        }
-        if (field.referenceTable && field.referenceTable.condition) {
-          const formattedCondition = window.UIHelpers.formatReferenceTableCondition(field.referenceTable.condition);
-          details.push(`条件: ${formattedCondition}`);
-        }
-        if (field.referenceTable && field.referenceTable.filterCond) {
-          const formattedFilter = window.UIHelpers.formatReferenceTableFilter(field.referenceTable.filterCond);
-          details.push(`絞り込み: ${formattedFilter}`);
-        }
-        if (field.referenceTable && field.referenceTable.displayFields) {
-          const displayFieldCodes = field.referenceTable.displayFields.join(', ');
-          details.push(`表示フィールド: ${displayFieldCodes}`);
-        }
-        if (field.referenceTable && field.referenceTable.sort) {
-          const formattedSort = window.UIHelpers.formatReferenceTableSort(field.referenceTable.sort);
-          details.push(`ソート: ${formattedSort}`);
-        }
-        optionDetails = details.length > 0 ? details.join('; ') : '関連レコード一覧';
-      }
-      // ルックアップフィールドの場合（lookupプロパティが設定されている場合）
-      else if (field.lookup) {
-        const details = [];
-        if (field.lookup.relatedApp) {
-          const appDisplayName = getAppDisplayName(field.lookup.relatedApp.app);
-          details.push(`参照アプリ: ${appDisplayName}`);
-        }
-        if (field.lookup.relatedKeyField) {
-          details.push(`参照キー: ${field.lookup.relatedKeyField}`);
-        }
-        if (field.lookup.fieldMappings) {
-          const mappings = field.lookup.fieldMappings.map(mapping =>
-            `${mapping.field}→${mapping.relatedField}`
-          );
-          details.push(`フィールドマッピング: ${mappings.join(', ')}`);
-        }
-        if (field.lookup.lookupPickerFields) {
-          details.push(`検索対象: ${field.lookup.lookupPickerFields.join(', ')}`);
-        }
-        if (field.lookup.filterCond) {
-          const formattedFilter = window.UIHelpers.formatReferenceTableFilter(field.lookup.filterCond);
-          details.push(`絞り込み: ${formattedFilter}`);
-        }
-        if (field.lookup.sort) {
-          const formattedSort = window.UIHelpers.formatReferenceTableSort(field.lookup.sort);
-          details.push(`ソート: ${formattedSort}`);
-        }
-        optionDetails = details.length > 0 ? details.join('; ') : 'ルックアップ';
-      }
-      // 選択肢型フィールドの場合
-      else if (field.options) {
-        if (field.type === 'DROP_DOWN' || field.type === 'RADIO_BUTTON' ||
-            field.type === 'CHECK_BOX' || field.type === 'MULTI_SELECT') {
-          // 選択肢型フィールドの場合
-          const choices = Object.keys(field.options).map(key => `${key}:${field.options[key].label || field.options[key]}`);
-          optionDetails = choices.join('; ');
-        } else {
-          // その他のオプション
-          optionDetails = Object.keys(field.options).map(key => `${key}=${JSON.stringify(field.options[key])}`).join('; ');
-        }
-      }
+                   // UIHelpersのテキスト版関数を使用してオプション詳細を生成
+      optionDetails = window.UIHelpers.generateOptionDetailsText(field);
 
 
 

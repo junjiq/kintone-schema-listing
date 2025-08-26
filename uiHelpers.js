@@ -213,9 +213,9 @@
   };
 
   /**
-   * フィールドのオプション詳細を生成
+   * フィールドのオプション詳細を生成（テキスト版 - CSV出力用）
    */
-  const generateOptionDetails = (field) => {
+  const generateOptionDetailsText = (field) => {
     let optionDetails = '';
     const fieldType = field.rawType || field.type;
 
@@ -254,7 +254,7 @@
         const sortInfo = field.referenceTable.sort;
         details.push(`ソート: ${formatReferenceTableSort(sortInfo)}`);
       }
-      optionDetails = details.length > 0 ? details.join('; ') : '関連レコード一覧';
+      optionDetails = details.length > 0 ? details.join('\n') : '関連レコード一覧';
     }
          // ルックアップフィールドの場合（lookupプロパティが設定されている場合）
      else if (field.lookup) {
@@ -282,7 +282,7 @@
          const sortInfo = field.lookup.sort;
          details.push(`ソート: ${formatReferenceTableSort(sortInfo)}`);
        }
-       optionDetails = details.length > 0 ? details.join('; ') : 'ルックアップ';
+       optionDetails = details.length > 0 ? details.join('\n') : 'ルックアップ';
      }
     // グループフィールドの場合
     else if (fieldType === 'GROUP') {
@@ -301,17 +301,115 @@
         // 選択肢型フィールドの場合
         const choices = Object.keys(field.options).map(key =>
           `${key}:${field.options[key].label || field.options[key]}`);
-        optionDetails = choices.join('; ');
+        optionDetails = choices.join('\n');
       } else {
         // その他のオプション
         optionDetails = Object.keys(field.options).map(key =>
-          `${key}=${JSON.stringify(field.options[key])}`).join('; ');
+          `${key}=${JSON.stringify(field.options[key])}`).join('\n');
       }
     }
 
-
-
     return optionDetails;
+  };
+
+  /**
+   * フィールドのオプション詳細を生成（HTML版 - UI表示用）
+   */
+  const generateOptionDetails = (field) => {
+    const fieldType = field.rawType || field.type;
+
+    // ラベルフィールドの場合
+    if (fieldType === 'LABEL') {
+      return `<strong>表示テキスト:</strong> ${field.originalLabel || field.label || ''}`;
+    }
+    // 計算フィールドの場合
+    else if (fieldType === 'CALC') {
+      if (field.expression) {
+        return `<strong>計算式:</strong> ${field.expression}`;
+      } else if (field.options && field.options.expression) {
+        return `<strong>計算式:</strong> ${field.options.expression}`;
+      } else {
+        return '計算フィールド';
+      }
+    }
+    // 関連レコード一覧フィールドの場合
+    else if (fieldType === 'REFERENCE_TABLE') {
+      const details = [];
+      if (field.referenceTable && field.referenceTable.relatedApp) {
+        const appDisplayName = getAppDisplayName(field.referenceTable.relatedApp.app);
+        details.push(`<strong>関連アプリ:</strong> ${appDisplayName}`);
+      }
+      if (field.referenceTable && field.referenceTable.condition) {
+        details.push(`<strong>条件:</strong> ${formatReferenceTableCondition(field.referenceTable.condition)}`);
+      }
+      if (field.referenceTable && field.referenceTable.filterCond) {
+        details.push(`<strong>絞り込み:</strong> ${formatReferenceTableFilter(field.referenceTable.filterCond)}`);
+      }
+      if (field.referenceTable && field.referenceTable.displayFields) {
+        const displayFieldCodes = field.referenceTable.displayFields.join(', ');
+        details.push(`<strong>表示フィールド:</strong> ${displayFieldCodes}`);
+      }
+      if (field.referenceTable && field.referenceTable.sort) {
+        const sortInfo = field.referenceTable.sort;
+        details.push(`<strong>ソート:</strong> ${formatReferenceTableSort(sortInfo)}`);
+      }
+      return details.length > 0 ? details.join('<br>') : '関連レコード一覧';
+    }
+    // ルックアップフィールドの場合（lookupプロパティが設定されている場合）
+    else if (field.lookup) {
+      const details = [];
+      if (field.lookup.relatedApp) {
+        const appDisplayName = getAppDisplayName(field.lookup.relatedApp.app);
+        details.push(`<strong>参照アプリ:</strong> ${appDisplayName}`);
+      }
+      if (field.lookup.relatedKeyField) {
+        details.push(`<strong>参照キー:</strong> ${field.lookup.relatedKeyField}`);
+      }
+      if (field.lookup.fieldMappings) {
+        const mappings = field.lookup.fieldMappings.map(mapping =>
+          `${mapping.field}→${mapping.relatedField}`
+        );
+        details.push(`<strong>フィールドマッピング:</strong> ${mappings.join(', ')}`);
+      }
+      if (field.lookup.lookupPickerFields) {
+        details.push(`<strong>検索対象:</strong> ${field.lookup.lookupPickerFields.join(', ')}`);
+      }
+      if (field.lookup.filterCond) {
+        details.push(`<strong>絞り込み:</strong> ${formatReferenceTableFilter(field.lookup.filterCond)}`);
+      }
+      if (field.lookup.sort) {
+        const sortInfo = field.lookup.sort;
+        details.push(`<strong>ソート:</strong> ${formatReferenceTableSort(sortInfo)}`);
+      }
+      return details.length > 0 ? details.join('<br>') : 'ルックアップ';
+    }
+    // グループフィールドの場合
+    else if (fieldType === 'GROUP') {
+      const groupFieldCount = field.subFields ? field.subFields.length : 0;
+      return `<strong>グループ内フィールド数:</strong> ${groupFieldCount}`;
+    }
+    // サブテーブルフィールドの場合
+    else if (fieldType === 'SUBTABLE') {
+      const subFieldCount = field.subFields ? field.subFields.length : 0;
+      return `<strong>サブフィールド数:</strong> ${subFieldCount}`;
+    }
+    // 通常のオプション詳細処理
+    else if (field.options) {
+      if (fieldType === 'DROP_DOWN' || fieldType === 'RADIO_BUTTON' ||
+          fieldType === 'CHECK_BOX' || fieldType === 'MULTI_SELECT') {
+        // 選択肢型フィールドの場合
+        const choices = Object.keys(field.options).map(key =>
+          `<strong>${key}:</strong>${field.options[key].label || field.options[key]}`);
+        return choices.join('<br>');
+      } else {
+        // その他のオプション
+        const options = Object.keys(field.options).map(key =>
+          `<strong>${key}=</strong>${JSON.stringify(field.options[key])}`);
+        return options.join('<br>');
+      }
+    }
+
+    return '';
   };
 
   /**
@@ -562,7 +660,7 @@
       // オプション詳細
       const optionCell = document.createElement('td');
       const optionDetails = generateOptionDetails(field);
-      optionCell.textContent = optionDetails;
+      optionCell.innerHTML = optionDetails;
       optionCell.style.border = '1px solid #ddd';
       optionCell.style.padding = '8px';
       optionCell.style.fontSize = '11px';
@@ -635,7 +733,7 @@
           // サブオプション詳細
           const subOptionCell = document.createElement('td');
           const subOptionDetails = generateOptionDetails(subField);
-          subOptionCell.textContent = subOptionDetails;
+          subOptionCell.innerHTML = subOptionDetails;
           subOptionCell.style.border = '1px solid #ddd';
           subOptionCell.style.padding = '8px';
           subOptionCell.style.fontSize = '10px';
@@ -882,7 +980,8 @@
     formatReferenceTableCondition,
     formatReferenceTableSort,
     formatReferenceTableFilter,
-    getAppDisplayName
+    getAppDisplayName,
+    generateOptionDetailsText // CSV出力用のテキスト版関数も公開
   };
 
   console.log('UI ヘルパー スクリプトが読み込まれました');

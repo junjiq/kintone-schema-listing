@@ -93,6 +93,16 @@
         console.log(`LABELフィールドを除外: ${Object.keys(schema).length} → ${Object.keys(filteredSchema).length} フィールド`);
       }
 
+      // レコード表示用のスキーマ（LABELフィールドは常に除外）
+      let recordDisplaySchema = {};
+      Object.keys(schema).forEach(fieldCode => {
+        const field = schema[fieldCode];
+        if (field.type !== 'LABEL') {
+          recordDisplaySchema[fieldCode] = field;
+        }
+      });
+      console.log(`レコード表示用スキーマ: ${Object.keys(recordDisplaySchema).length} フィールド（LABELフィールド除外）`);
+
       const formattedSchema = window.DataFormatters.formatSchema(filteredSchema);
       window.UIHelpers.displaySchemaTable(formattedSchema, resultContainer);
 
@@ -106,15 +116,15 @@
       recordTitle.style.marginTop = '30px';
       resultContainer.appendChild(recordTitle);
 
-      const formattedRecords = window.DataFormatters.formatRecordData(records, filteredSchema);
-      window.UIHelpers.displayRecordTable(formattedRecords, filteredSchema, resultContainer);
+      const formattedRecords = window.DataFormatters.formatRecordData(records, recordDisplaySchema);
+      window.UIHelpers.displayRecordTable(formattedRecords, recordDisplaySchema, resultContainer);
 
       // レコードデータCSVエクスポート機能を追加
-      window.CSVExport.addRecordExportButton(formattedRecords, filteredSchema, appName, resultContainer);
+      window.CSVExport.addRecordExportButton(formattedRecords, recordDisplaySchema, appName, resultContainer);
 
       // サブテーブルを別表として表示（外部ファイルの関数を使用）
       if (typeof window.displaySubtables === 'function') {
-        window.displaySubtables(formattedRecords, filteredSchema, resultContainer);
+        window.displaySubtables(formattedRecords, recordDisplaySchema, resultContainer);
       } else {
         console.warn('サブテーブル表示機能が読み込まれていません。subtableDisplay.jsを先に読み込んでください。');
       }
