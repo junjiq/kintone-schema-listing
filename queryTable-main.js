@@ -38,7 +38,7 @@
   /**
    * 検索実行メイン関数
    */
-  const executeQuery = async (appName, recordCount, showLabels = true) => {
+  const executeQuery = async (appName, recordCount, showLabels = true, appId = null) => {
     const resultContainer = document.getElementById('query-result');
 
     if (!resultContainer) {
@@ -50,24 +50,37 @@
     resultContainer.innerHTML = '';
 
     try {
-      // アプリIDを取得
-      console.log(`アプリ "${appName}" を検索中...`);
-      const appId = await window.KintoneAPI.getAppIdByName(appName);
-      console.log(`アプリID: ${appId}`);
+      let finalAppId = appId;
+      let finalAppName = appName;
+
+      // アプリIDが直接指定されていない場合は、アプリ名から取得
+      if (!finalAppId) {
+        console.log(`アプリ "${appName}" を検索中...`);
+        finalAppId = await window.KintoneAPI.getAppIdByName(appName);
+        console.log(`アプリID: ${finalAppId}`);
+      } else {
+        // アプリIDが指定されている場合は、アプリ名を取得
+        console.log(`アプリID "${appId}" からアプリ名を取得中...`);
+        finalAppName = await window.KintoneAPI.getAppNameById(appId);
+        if (!finalAppName) {
+          finalAppName = `アプリID: ${appId}`;
+        }
+        console.log(`アプリ名: ${finalAppName}`);
+      }
 
       // スキーマを取得
       console.log('スキーマを取得中...');
-      const schema = await window.KintoneAPI.getAppSchema(appId);
+      const schema = await window.KintoneAPI.getAppSchema(finalAppId);
       console.log('スキーマ取得完了');
 
       // レコードを取得
       console.log(`${recordCount}件のレコードを取得中...`);
-      const records = await window.KintoneAPI.getRecords(appId, recordCount);
+      const records = await window.KintoneAPI.getRecords(finalAppId, recordCount);
       console.log(`${records.length}件のレコードを取得`);
 
       // 結果の表示
       const title = document.createElement('h2');
-      title.textContent = `アプリ: ${appName} (ID: ${appId})`;
+      title.textContent = `アプリ: ${finalAppName} (ID: ${finalAppId})`;
       title.style.color = '#333';
       title.style.borderBottom = '2px solid #0066cc';
       title.style.paddingBottom = '10px';
@@ -107,7 +120,7 @@
       window.UIHelpers.displaySchemaTable(formattedSchema, resultContainer);
 
       // スキーマCSVエクスポート機能を追加
-      window.CSVExport.addSchemaExportButton(filteredSchema, appName, resultContainer);
+      window.CSVExport.addSchemaExportButton(filteredSchema, finalAppName, resultContainer);
 
       // レコードデータ表示
       const recordTitle = document.createElement('h3');
@@ -120,7 +133,7 @@
       window.UIHelpers.displayRecordTable(formattedRecords, recordDisplaySchema, resultContainer);
 
       // レコードデータCSVエクスポート機能を追加
-      window.CSVExport.addRecordExportButton(formattedRecords, recordDisplaySchema, appName, resultContainer);
+      window.CSVExport.addRecordExportButton(formattedRecords, recordDisplaySchema, finalAppName, resultContainer);
 
       // サブテーブルを別表として表示（外部ファイルの関数を使用）
       if (typeof window.displaySubtables === 'function') {
@@ -213,13 +226,26 @@
     currentAppButton.style.cursor = 'pointer';
     currentAppButton.style.fontSize = '12px';
 
-    currentAppButton.onclick = () => {
-      const currentApp = window.KintoneAPI.getCurrentAppInfo();
-      if (currentApp && currentApp.appName) {
-        appNameInput.value = currentApp.appName;
-        window.UIHelpers.showMessage(`現在のアプリ "${currentApp.appName}" が選択されました`, 'success');
-      } else {
-        window.UIHelpers.showMessage('現在のアプリ情報を取得できませんでした', 'error');
+    currentAppButton.onclick = async () => {
+      try {
+        const currentApp = window.KintoneAPI.getCurrentAppInfo();
+        if (currentApp && currentApp.appId) {
+          // アプリIDからアプリ名を取得
+          const appName = await window.KintoneAPI.getAppNameById(currentApp.appId);
+          if (appName) {
+            appNameInput.value = appName;
+            window.UIHelpers.showMessage(`現在のアプリ "${appName}" (ID: ${currentApp.appId}) が選択されました`, 'success');
+          } else {
+            // アプリ名が取得できない場合は、アプリIDを表示
+            appNameInput.value = `アプリID: ${currentApp.appId}`;
+            window.UIHelpers.showMessage(`現在のアプリID "${currentApp.appId}" が選択されました（アプリ名の取得に失敗）`, 'warning');
+          }
+        } else {
+          window.UIHelpers.showMessage('現在のアプリ情報を取得できませんでした', 'error');
+        }
+      } catch (error) {
+        console.error('現在のアプリ情報取得エラー:', error);
+        window.UIHelpers.showMessage('現在のアプリ情報の取得中にエラーが発生しました: ' + error.message, 'error');
       }
     };
 
@@ -323,24 +349,38 @@
     searchButton.style.marginLeft = '10px';
 
     searchButton.onclick = () => {
-      const appName = appNameInput.value.trim();
+      const appNameValue = appNameInput.value.trim();
       const recordCount = parseInt(recordCountInput.value);
       const showLabels = labelDisplayCheckbox.checked;
 
-      if (!appName) {
+      if (!appNameValue) {
         // より詳細な案内を表示
         const currentApp = window.KintoneAPI.getCurrentAppInfo();
-        let message = 'アプリケーション名を入力してください。\n\n以下の方法で選択できます：\n';
+        let message = 'アプリケーション名またはアプリIDを入力してください。\n\n以下の方法で選択できます：\n';
 
-        if (currentApp && currentApp.appName) {
-          message += `• "現在のアプリを選択"ボタンで "${currentApp.appName}" を選択\n`;
+        if (currentApp && currentApp.appId) {
+          message += `• "現在のアプリを選択"ボタンで現在のアプリを選択\n`;
         }
         message += '• "アプリ一覧を表示"ボタンでスペース内のアプリから選択\n';
-        message += '• 直接アプリ名を入力';
+        message += '• 直接アプリ名またはアプリIDを入力';
 
-        window.UIHelpers.showMessage('アプリケーション名が指定されていません', 'error');
+        window.UIHelpers.showMessage('アプリケーション名またはアプリIDが指定されていません', 'error');
         alert(message);
         return;
+      }
+
+      // アプリIDの形式かどうかをチェック（数字のみの場合）
+      let appName = appNameValue;
+      let appId = null;
+
+      if (/^\d+$/.test(appNameValue)) {
+        // 数字のみの場合はアプリIDとして扱う
+        appId = appNameValue;
+        appName = null; // アプリ名は後で取得
+      } else if (appNameValue.startsWith('アプリID: ')) {
+        // "アプリID: "で始まる場合
+        appId = appNameValue.replace('アプリID: ', '');
+        appName = null;
       }
 
       if (!recordCount || recordCount < 1 || recordCount > 500) {
@@ -351,7 +391,7 @@
       searchButton.disabled = true;
       searchButton.textContent = '検索中...';
 
-      executeQuery(appName, recordCount, showLabels)
+      executeQuery(appName, recordCount, showLabels, appId)
         .finally(() => {
           searchButton.disabled = false;
           searchButton.textContent = '検索実行';

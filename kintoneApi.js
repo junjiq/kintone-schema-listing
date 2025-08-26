@@ -12,8 +12,10 @@
   const getCurrentAppInfo = () => {
     try {
       const appId = kintone.app.getId();
-      const appName = kintone.app.getName();
-      return { appId, appName };
+
+      // kintone.app.getName()は存在しないため、アプリIDのみを返す
+      // アプリ名が必要な場合は、後でgetAppNameById()を使用する
+      return { appId, appName: null };
     } catch (error) {
       console.warn('現在のアプリ情報の取得に失敗:', error);
       return null;
