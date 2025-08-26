@@ -161,6 +161,23 @@
           if (cellValue !== null && cellValue !== undefined && cellValue !== '') {
             if (Array.isArray(cellValue)) {
               cellContent = cellValue.join(', ');
+            } else if (typeof cellValue === 'object') {
+              // オブジェクトの場合の処理
+              if (cellValue.type === 'DROP_DOWN' ||
+                  cellValue.type === 'RADIO_BUTTON' ||
+                  cellValue.type === 'CHECK_BOX' ||
+                  cellValue.type === 'MULTI_SELECT') {
+                // 選択系フィールドの場合
+                if (cellValue.value === null || cellValue.value === undefined) {
+                  cellContent = '(未選択)';
+                  td.style.color = '#999';
+                } else {
+                  cellContent = String(cellValue.value);
+                }
+              } else {
+                // その他のオブジェクトの場合
+                cellContent = JSON.stringify(cellValue);
+              }
             } else {
               cellContent = String(cellValue);
             }

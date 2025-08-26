@@ -67,8 +67,23 @@
       const formattedRow = {};
       Object.keys(row).forEach(fieldCode => {
         if (row[fieldCode] && row[fieldCode].value !== undefined) {
-          // ルックアップフィールドの場合、ルックアップされた値を処理
-          formattedRow[fieldCode] = row[fieldCode].value;
+          // フィールド値の処理
+          let fieldValue = row[fieldCode].value;
+
+          // null値の処理
+          if (fieldValue === null || fieldValue === undefined) {
+            // ドロップダウンやラジオボタンなどの選択系フィールドの場合
+            if (row[fieldCode].type === 'DROP_DOWN' ||
+                row[fieldCode].type === 'RADIO_BUTTON' ||
+                row[fieldCode].type === 'CHECK_BOX' ||
+                row[fieldCode].type === 'MULTI_SELECT') {
+              fieldValue = '(未選択)';
+            } else {
+              fieldValue = '';
+            }
+          }
+
+          formattedRow[fieldCode] = fieldValue;
         } else if (row[fieldCode] !== undefined) {
           // valueプロパティがない場合は直接値を使用
           formattedRow[fieldCode] = row[fieldCode];

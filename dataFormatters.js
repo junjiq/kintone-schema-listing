@@ -130,7 +130,23 @@
             // ルックアップフィールドの場合（lookupプロパティが設定されている場合）、ルックアップされた値を処理
             formattedRecord[fieldCode] = value.value;
           } else {
-            formattedRecord[fieldCode] = value.value;
+            // 通常のフィールド値の処理
+            let fieldValue = value.value;
+
+            // null値の処理
+            if (fieldValue === null || fieldValue === undefined) {
+              // ドロップダウンやラジオボタンなどの選択系フィールドの場合
+              if (field.type === 'DROP_DOWN' ||
+                  field.type === 'RADIO_BUTTON' ||
+                  field.type === 'CHECK_BOX' ||
+                  field.type === 'MULTI_SELECT') {
+                fieldValue = '(未選択)';
+              } else {
+                fieldValue = '';
+              }
+            }
+
+            formattedRecord[fieldCode] = fieldValue;
           }
         } else {
           // ラベルフィールドは値を持たないため、スキーマのラベル情報を使用
@@ -140,7 +156,15 @@
             // グループフィールドの値がない場合でも、グループ内フィールドの値を処理
             formattedRecord[fieldCode] = GroupFieldProcessor.processGroupRecordData(record, field, fieldCode);
           } else {
-            formattedRecord[fieldCode] = null;
+            // 値が存在しない場合の処理
+            if (field.type === 'DROP_DOWN' ||
+                field.type === 'RADIO_BUTTON' ||
+                field.type === 'CHECK_BOX' ||
+                field.type === 'MULTI_SELECT') {
+              formattedRecord[fieldCode] = '(未選択)';
+            } else {
+              formattedRecord[fieldCode] = null;
+            }
           }
         }
       });

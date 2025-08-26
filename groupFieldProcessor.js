@@ -68,11 +68,20 @@
     if (field.fields) {
       Object.keys(field.fields).forEach(groupFieldCode => {
         const groupFieldValue = record[groupFieldCode];
+        const groupField = field.fields[groupFieldCode];
+
         if (groupFieldValue) {
-          const groupField = field.fields[groupFieldCode];
           groupData[groupFieldCode] = formatGroupFieldValue(groupFieldValue, groupField);
         } else {
-          groupData[groupFieldCode] = null;
+          // 値が存在しない場合の処理
+          if (groupField.type === 'DROP_DOWN' ||
+              groupField.type === 'RADIO_BUTTON' ||
+              groupField.type === 'CHECK_BOX' ||
+              groupField.type === 'MULTI_SELECT') {
+            groupData[groupFieldCode] = '(未選択)';
+          } else {
+            groupData[groupFieldCode] = null;
+          }
         }
       });
     }
@@ -100,7 +109,23 @@
       // ルックアップフィールドの場合（lookupプロパティが設定されている場合）、ルックアップされた値を処理
       return value.value;
     } else {
-      return value.value;
+      // 通常のフィールド値の処理
+      let fieldValue = value.value;
+
+      // null値の処理
+      if (fieldValue === null || fieldValue === undefined) {
+        // ドロップダウンやラジオボタンなどの選択系フィールドの場合
+        if (fieldSchema.type === 'DROP_DOWN' ||
+            fieldSchema.type === 'RADIO_BUTTON' ||
+            fieldSchema.type === 'CHECK_BOX' ||
+            fieldSchema.type === 'MULTI_SELECT') {
+          fieldValue = '(未選択)';
+        } else {
+          fieldValue = '';
+        }
+      }
+
+      return fieldValue;
     }
   };
 
