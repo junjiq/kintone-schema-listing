@@ -11,60 +11,79 @@
 
 
   /**
-   * アプリ一覧を表示
+   * アプリ一覧をポップアップウィンドウとして表示
    */
   const displayAppList = (apps, inputElement) => {
-    // 既存のリストを削除
-    const existingList = document.getElementById('app-list-container');
-    if (existingList) {
-      existingList.remove();
+    // 既存のポップアップを削除
+    const existingPopup = document.getElementById('app-list-popup');
+    if (existingPopup) {
+      existingPopup.remove();
     }
 
-    const listContainer = document.createElement('div');
-    listContainer.id = 'app-list-container';
-    listContainer.style.position = 'absolute';
-    listContainer.style.backgroundColor = 'white';
-    listContainer.style.border = '1px solid #ccc';
-    listContainer.style.borderRadius = '4px';
-    listContainer.style.maxHeight = '300px';
-    listContainer.style.overflowY = 'auto';
-    listContainer.style.zIndex = '1000';
-    listContainer.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
+    // ポップアップオーバーレイを作成
+    const overlay = document.createElement('div');
+    overlay.id = 'app-list-popup';
+    overlay.style.position = 'fixed';
+    overlay.style.top = '0';
+    overlay.style.left = '0';
+    overlay.style.width = '100%';
+    overlay.style.height = '100%';
+    overlay.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+    overlay.style.zIndex = '9999';
+    overlay.style.display = 'flex';
+    overlay.style.justifyContent = 'center';
+    overlay.style.alignItems = 'center';
+
+    // ポップアップコンテナを作成
+    const popupContainer = document.createElement('div');
+    popupContainer.style.backgroundColor = 'white';
+    popupContainer.style.border = '1px solid #ccc';
+    popupContainer.style.borderRadius = '8px';
+    popupContainer.style.width = '600px';
+    popupContainer.style.maxHeight = '80vh';
+    popupContainer.style.overflowY = 'auto';
+    popupContainer.style.boxShadow = '0 4px 20px rgba(0,0,0,0.3)';
+    popupContainer.style.position = 'relative';
 
     const listTitle = document.createElement('h4');
     listTitle.textContent = `アプリ一覧 (${apps.length}件)`;
     listTitle.style.margin = '0';
-    listTitle.style.padding = '10px';
+    listTitle.style.padding = '15px';
     listTitle.style.backgroundColor = '#f0f8ff';
     listTitle.style.borderBottom = '1px solid #ddd';
+    listTitle.style.borderRadius = '8px 8px 0 0';
+    listTitle.style.fontSize = '16px';
+    listTitle.style.fontWeight = 'bold';
 
     const closeButton = document.createElement('button');
     closeButton.textContent = '×';
     closeButton.style.position = 'absolute';
-    closeButton.style.right = '10px';
-    closeButton.style.top = '8px';
+    closeButton.style.right = '15px';
+    closeButton.style.top = '12px';
     closeButton.style.border = 'none';
     closeButton.style.background = 'none';
-    closeButton.style.fontSize = '18px';
+    closeButton.style.fontSize = '20px';
     closeButton.style.cursor = 'pointer';
     closeButton.style.color = '#999';
+    closeButton.style.fontWeight = 'bold';
     closeButton.onclick = () => {
-      listContainer.remove();
+      overlay.remove();
     };
 
     listTitle.appendChild(closeButton);
-    listContainer.appendChild(listTitle);
+    popupContainer.appendChild(listTitle);
 
     // アプリをリスト表示
     apps.forEach(app => {
       const appItem = document.createElement('div');
-      appItem.style.padding = '10px';
+      appItem.style.padding = '12px 15px';
       appItem.style.borderBottom = '1px solid #eee';
       appItem.style.cursor = 'pointer';
       appItem.style.backgroundColor = '#f8f9fa';
       appItem.style.display = 'flex';
       appItem.style.justifyContent = 'space-between';
       appItem.style.alignItems = 'center';
+      appItem.style.transition = 'background-color 0.2s ease';
 
       const appInfo = document.createElement('span');
       appInfo.innerHTML = `<strong>${app.name}</strong> <small style="color: #6c757d;">(ID: ${app.appId})</small>`;
@@ -72,18 +91,27 @@
 
       const selectButton = document.createElement('button');
       selectButton.textContent = '選択';
-      selectButton.style.padding = '4px 8px';
+      selectButton.style.padding = '6px 12px';
       selectButton.style.backgroundColor = '#007bff';
       selectButton.style.color = 'white';
       selectButton.style.border = 'none';
-      selectButton.style.borderRadius = '3px';
+      selectButton.style.borderRadius = '4px';
       selectButton.style.cursor = 'pointer';
-      selectButton.style.fontSize = '12px';
+      selectButton.style.fontSize = '13px';
+      selectButton.style.fontWeight = 'bold';
+      selectButton.style.transition = 'background-color 0.2s ease';
+
+      selectButton.onmouseover = () => {
+        selectButton.style.backgroundColor = '#0056b3';
+      };
+      selectButton.onmouseout = () => {
+        selectButton.style.backgroundColor = '#007bff';
+      };
 
       selectButton.onclick = (e) => {
         e.stopPropagation();
         inputElement.value = app.name;
-        listContainer.remove();
+        overlay.remove();
         window.MessageHelpers.showMessage(`アプリ "${app.name}" が選択されました`, 'success');
       };
 
@@ -92,7 +120,7 @@
       // アイテム全体をクリックしても選択可能
       appItem.onclick = () => {
         inputElement.value = app.name;
-        listContainer.remove();
+        overlay.remove();
         window.MessageHelpers.showMessage(`アプリ "${app.name}" が選択されました`, 'success');
       };
 
@@ -104,14 +132,30 @@
         appItem.style.backgroundColor = '#f8f9fa';
       };
 
-      listContainer.appendChild(appItem);
+      popupContainer.appendChild(appItem);
     });
 
-    // クエリUIの後に追加
-    const queryUI = document.getElementById('query-ui');
-    if (queryUI && queryUI.parentNode) {
-      queryUI.parentNode.insertBefore(listContainer, queryUI.nextSibling);
-    }
+    // オーバーレイにポップアップコンテナを追加
+    overlay.appendChild(popupContainer);
+
+    // オーバーレイクリックでポップアップを閉じる
+    overlay.onclick = (e) => {
+      if (e.target === overlay) {
+        overlay.remove();
+      }
+    };
+
+    // ESCキーでポップアップを閉じる
+    const handleEscKey = (e) => {
+      if (e.key === 'Escape') {
+        overlay.remove();
+        document.removeEventListener('keydown', handleEscKey);
+      }
+    };
+    document.addEventListener('keydown', handleEscKey);
+
+    // bodyにオーバーレイを追加
+    document.body.appendChild(overlay);
   };
 
   /**
