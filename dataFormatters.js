@@ -65,8 +65,26 @@
       console.log('formatSchema: グループフィールドは存在しません');
     }
 
+    // グループフィールド内に含まれるフィールドコードを収集（重複表示を防ぐため）
+    const fieldsInGroups = new Set();
     Object.keys(schema).forEach(fieldCode => {
       const field = schema[fieldCode];
+      if (field.type === 'GROUP' && field.fields) {
+        Object.keys(field.fields).forEach(groupFieldCode => {
+          fieldsInGroups.add(groupFieldCode);
+        });
+      }
+    });
+    console.log('formatSchema: グループ内フィールド一覧:', Array.from(fieldsInGroups));
+
+    Object.keys(schema).forEach(fieldCode => {
+      const field = schema[fieldCode];
+
+      // グループ内に含まれるフィールドはメインレベルでは処理しない（重複表示を防ぐため）
+      if (fieldsInGroups.has(fieldCode)) {
+        console.log(`formatSchema: フィールド ${fieldCode} はグループ内フィールドのためスキップ`);
+        return;
+      }
 
       const fieldInfo = {
         code: field.type === 'LABEL' ? 'FC未定義' : fieldCode,
@@ -111,7 +129,22 @@
         recordId: record.$id.value
       };
 
+      // グループフィールド内に含まれるフィールドコードを収集（重複表示を防ぐため）
+      const fieldsInGroups = new Set();
       Object.keys(schema).forEach(fieldCode => {
+        const field = schema[fieldCode];
+        if (field.type === 'GROUP' && field.fields) {
+          Object.keys(field.fields).forEach(groupFieldCode => {
+            fieldsInGroups.add(groupFieldCode);
+          });
+        }
+      });
+
+      Object.keys(schema).forEach(fieldCode => {
+        // グループ内に含まれるフィールドはメインレベルでは処理しない（重複表示を防ぐため）
+        if (fieldsInGroups.has(fieldCode)) {
+          return;
+        }
         const field = schema[fieldCode];
         const value = record[fieldCode];
 

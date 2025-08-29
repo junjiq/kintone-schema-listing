@@ -151,7 +151,7 @@
 
         // レイアウトからLABELフィールドを収集
         const layoutLabels = {};
-        function collectLabels(nodes) {
+        function collectLabels(nodes, parentGroup = null) {
           for (const node of nodes) {
             if (node.type === 'ROW') {
               for (const f of (node.fields || [])) {
@@ -163,24 +163,42 @@
                     type: f.type,
                     required: false,
                     description: '',
-                    fromLayout: true // レイアウトから取得したことを示すフラグ
+                    fromLayout: true, // レイアウトから取得したことを示すフラグ
+                    parentGroup: parentGroup // 親グループ情報を記録
                   };
                 }
               }
+            } else if (node.type === 'GROUP') {
+              // グループ内のレイアウトを処理（親グループ情報を渡す）
+              collectLabels(node.layout || [], node.code);
             } else if (node.layout) {
-              collectLabels(node.layout);
+              collectLabels(node.layout, parentGroup);
             }
           }
         }
         collectLabels(layoutResponse.layout || []);
 
-        // レイアウトから取得したLABELフィールドをスキーマに追加
+        // グループ内に含まれるフィールドコードを収集
+        const fieldsInGroups = new Set();
+        Object.keys(groupFields).forEach(groupCode => {
+          const groupInfo = groupFields[groupCode];
+          if (groupInfo.fields) {
+            Object.keys(groupInfo.fields).forEach(fieldCode => {
+              fieldsInGroups.add(fieldCode);
+            });
+          }
+        });
+
+        // レイアウトから取得したLABELフィールドをスキーマに追加（グループ内のものは除外）
         console.log('レイアウトから収集されたLABELフィールド:', layoutLabels);
         Object.keys(layoutLabels).forEach(labelCode => {
           const labelField = layoutLabels[labelCode];
-          if (!schema[labelCode]) {
+          // グループ内のLABELフィールドはメインスキーマに追加しない
+          if (!fieldsInGroups.has(labelCode) && !schema[labelCode]) {
             console.log(`LABELフィールド ${labelCode} をスキーマに追加`);
             schema[labelCode] = labelField;
+          } else if (fieldsInGroups.has(labelCode)) {
+            console.log(`LABELフィールド ${labelCode} はグループ内フィールドのためメインスキーマに追加しない`);
           }
         });
 
