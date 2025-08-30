@@ -122,8 +122,14 @@
     // 各サブテーブルのCSV
     const subtableSections = SubtableFieldProcessor.processSubtableRecordsForCSV(records, schema);
     subtableSections.forEach(section => {
-      csvSections.push(section.title);
-      csvSections.push(section.content);
+      if (typeof section === 'string') {
+        // サブテーブルセクションが文字列で返る実装に対応
+        csvSections.push(section);
+      } else if (section && typeof section === 'object') {
+        // 互換: { title, content } 形式にも対応
+        if (section.title) csvSections.push(section.title);
+        if (section.content) csvSections.push(section.content);
+      }
     });
 
     return csvSections.join('\n');
@@ -171,17 +177,20 @@
       fieldCodes.forEach(fieldInfo => {
         let value;
         let cellContent = '';
+        let isGroupLabel = false;
+        let parentFieldRef = null;
 
-                if (fieldInfo.type === 'group') {
+        if (fieldInfo.type === 'group') {
           // グループ内フィールドの場合
           value = GroupFieldProcessor.getGroupValueForCSV(record, fieldInfo);
 
           // グループ内のラベルフィールドの場合は特別処理
-          const parentField = schema[fieldInfo.parentCode];
-          if (parentField && parentField.fields && parentField.fields[fieldInfo.fieldCode]) {
-            const groupField = parentField.fields[fieldInfo.fieldCode];
+          parentFieldRef = schema[fieldInfo.parentCode];
+          if (parentFieldRef && parentFieldRef.fields && parentFieldRef.fields[fieldInfo.fieldCode]) {
+            const groupField = parentFieldRef.fields[fieldInfo.fieldCode];
             if (groupField.type === 'LABEL') {
               cellContent = groupField.label || '';
+              isGroupLabel = true;
             } else if (groupField.lookup) {
               // グループ内のルックアップフィールドの場合（lookupプロパティが設定されている場合）、ルックアップされた値を処理
               cellContent = value || '';
@@ -196,14 +205,16 @@
           value = record[fieldInfo.fieldCode];
         }
 
-        if (fieldInfo.type !== 'label' && !(fieldInfo.type === 'group' && parentField && parentField.fields && parentField.fields[fieldInfo.fieldCode] && parentField.fields[fieldInfo.fieldCode].type === 'LABEL') && value !== null && value !== undefined && value !== '') {
+        if (fieldInfo.type !== 'label' && !(fieldInfo.type === 'group' && isGroupLabel) && value !== null && value !== undefined && value !== '') {
           if (Array.isArray(value)) {
             cellContent = value.join(', ');
           } else if (typeof value === 'object' && value !== null) {
             // システムフィールド（更新者、作成者など）の処理
-            const field = fieldInfo.type === 'group' ?
-              (parentField && parentField.fields && parentField.fields[fieldInfo.fieldCode] ? parentField.fields[fieldInfo.fieldCode] : null) :
-              schema[fieldInfo.fieldCode];
+            const field = fieldInfo.type === 'group'
+              ? (parentFieldRef && parentFieldRef.fields && parentFieldRef.fields[fieldInfo.fieldCode]
+                  ? parentFieldRef.fields[fieldInfo.fieldCode]
+                  : null)
+              : schema[fieldInfo.fieldCode];
 
             if (field) {
               if (field.type === 'MODIFIER' || field.type === 'CREATOR') {

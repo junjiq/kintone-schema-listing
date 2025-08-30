@@ -66,30 +66,46 @@
     const result = subtableValue.map(row => {
       console.log('サブテーブル行データ:', row);
       const formattedRow = {};
-      Object.keys(row).forEach(fieldCode => {
-        if (row[fieldCode] && row[fieldCode].value !== undefined) {
-          // フィールド値の処理
-          let fieldValue = row[fieldCode].value;
 
-          // null値の処理
+      // kintoneの標準構造: { id: 'xxx', value: { subFieldCode: { type, value } } }
+      if (row && typeof row === 'object' && row.value && typeof row.value === 'object') {
+        Object.keys(row.value).forEach(subFieldCode => {
+          const cell = row.value[subFieldCode];
+          let fieldValue = cell && cell.value !== undefined ? cell.value : cell;
+
+          // null値の処理（選択系は"(未選択)"）
           if (fieldValue === null || fieldValue === undefined) {
-            // ドロップダウンやラジオボタンなどの選択系フィールドの場合
-            if (row[fieldCode].type === 'DROP_DOWN' ||
-                row[fieldCode].type === 'RADIO_BUTTON' ||
-                row[fieldCode].type === 'CHECK_BOX' ||
-                row[fieldCode].type === 'MULTI_SELECT') {
+            if (cell && (cell.type === 'DROP_DOWN' || cell.type === 'RADIO_BUTTON' || cell.type === 'CHECK_BOX' || cell.type === 'MULTI_SELECT')) {
               fieldValue = '(未選択)';
             } else {
               fieldValue = '';
             }
           }
 
-          formattedRow[fieldCode] = fieldValue;
-        } else if (row[fieldCode] !== undefined) {
-          // valueプロパティがない場合は直接値を使用
-          formattedRow[fieldCode] = row[fieldCode];
-        }
-      });
+          formattedRow[subFieldCode] = fieldValue;
+        });
+        // 行IDを保持したい場合はメタとして追加
+        if (row.id) formattedRow._rowId = row.id;
+      } else {
+        // 既存のフォールバック: フラット構造に対応
+        Object.keys(row || {}).forEach(fieldCode => {
+          const cell = row[fieldCode];
+          if (cell && cell.value !== undefined) {
+            let fieldValue = cell.value;
+            if (fieldValue === null || fieldValue === undefined) {
+              if (cell.type === 'DROP_DOWN' || cell.type === 'RADIO_BUTTON' || cell.type === 'CHECK_BOX' || cell.type === 'MULTI_SELECT') {
+                fieldValue = '(未選択)';
+              } else {
+                fieldValue = '';
+              }
+            }
+            formattedRow[fieldCode] = fieldValue;
+          } else if (cell !== undefined) {
+            formattedRow[fieldCode] = cell;
+          }
+        });
+      }
+
       console.log('フォーマット後の行データ:', formattedRow);
       return formattedRow;
     });
@@ -313,7 +329,12 @@
 
       // サブテーブルデータ行
       records.forEach(record => {
-        const recordId = record['$id'] ? record['$id'].value : 'N/A';
+        // formattedRecords か生レコードか双方に対応
+        const recordId = (record && record.recordId !== undefined)
+          ? record.recordId
+          : (record && record['$id'] && record['$id'].value !== undefined
+              ? record['$id'].value
+              : 'N/A');
         const subtableData = record[fieldCode];
 
         if (subtableData && Array.isArray(subtableData)) {
