@@ -251,6 +251,7 @@
 
     const exportButton = document.createElement('button');
     exportButton.textContent = 'スキーマをCSVでダウンロード';
+    exportButton.type = 'button';
     exportButton.style.padding = '10px 20px';
     exportButton.style.backgroundColor = '#4CAF50';
     exportButton.style.color = 'white';
@@ -267,7 +268,8 @@
       exportButton.style.backgroundColor = '#4CAF50';
     };
 
-    exportButton.onclick = () => {
+    exportButton.onclick = (e) => {
+      e.preventDefault();
       const csvContent = schemaToCSV(schema);
       const fileName = `${appName}_schema_${new Date().toISOString().split('T')[0]}.csv`;
       downloadCSV(csvContent, fileName);
@@ -309,6 +311,7 @@
     // メインレコードのみのエクスポートボタン
     const mainExportButton = document.createElement('button');
     mainExportButton.textContent = 'メインデータをCSVでダウンロード';
+    mainExportButton.type = 'button';
     mainExportButton.style.padding = '10px 20px';
     mainExportButton.style.backgroundColor = '#FF9800';
     mainExportButton.style.color = 'white';
@@ -326,7 +329,8 @@
       mainExportButton.style.backgroundColor = '#FF9800';
     };
 
-    mainExportButton.onclick = () => {
+    mainExportButton.onclick = (e) => {
+      e.preventDefault();
       const csvContent = recordsToCSV(records, schema);
       const fileName = `${appName}_records_${new Date().toISOString().split('T')[0]}.csv`;
       downloadCSV(csvContent, fileName);
@@ -337,6 +341,7 @@
     // サブテーブルデータを含む完全エクスポートボタン
     const fullExportButton = document.createElement('button');
     fullExportButton.textContent = 'サブテーブル含む全データをCSVでダウンロード';
+    fullExportButton.type = 'button';
     fullExportButton.style.padding = '10px 20px';
     fullExportButton.style.backgroundColor = '#9C27B0';
     fullExportButton.style.color = 'white';
@@ -354,7 +359,8 @@
       fullExportButton.style.backgroundColor = '#9C27B0';
     };
 
-    fullExportButton.onclick = () => {
+    fullExportButton.onclick = (e) => {
+      e.preventDefault();
       const csvContent = recordsWithSubtablesToCSV(records, schema);
       const fileName = `${appName}_full_records_${new Date().toISOString().split('T')[0]}.csv`;
       downloadCSV(csvContent, fileName);
