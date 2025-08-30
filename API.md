@@ -6,6 +6,34 @@
 
 ## グローバル関数
 
+### window.AppCache
+
+アプリ名キャッシュと表示名の解決機能を提供します。
+
+#### getAppDisplayName(appId)
+キャッシュからアプリ名を取得し、`アプリ名 (appId)` 形式で返します。キャッシュに無い場合は `アプリID: appId` を返します。
+
+**パラメータ:**
+- `appId` (string|number): アプリID
+
+**戻り値:** string
+
+**使用例:**
+```javascript
+const name = window.AppCache.getAppDisplayName(123);
+// 例: "顧客管理 (123)" または "アプリID: 123"
+```
+
+#### updateAppNameCache()
+スペース内のアプリ一覧からキャッシュを更新します。
+
+**戻り値:** Promise<void>
+
+**使用例:**
+```javascript
+await window.AppCache.updateAppNameCache();
+```
+
 ### window.QueryTable
 
 メインのクエリ実行機能を提供します。
@@ -368,6 +396,28 @@ const csvData = window.CSVExport.schemaToCSV(schema, 'テストアプリ');
 ```javascript
 const csvData = window.CSVExport.recordsToCSV(records, schema, 'テストアプリ');
 ```
+
+#### recordsWithSubtablesToCSV(records, schema)
+メインレコードCSVに続けて、各サブテーブルをセクションとして連結したCSV文字列を生成します。
+
+**パラメータ:**
+- `records` (Array): レコードデータの配列（`formatRecordData` の出力に対応）
+- `schema` (Object): スキーマオブジェクト
+
+**戻り値:** string
+
+**補足:** サブテーブルセクションは「`=== メインレコードデータ ===`」の後に、`サブテーブル: 名称` の見出し付きで連結されます。
+
+#### addRecordExportButton(records, schema, appName, containerElement)
+レコードCSVエクスポート用のボタン群（メイン/サブテーブル含む）をUIに追加します。
+
+**パラメータ:**
+- `records` (Array): レコードデータの配列
+- `schema` (Object): スキーマオブジェクト
+- `appName` (string): アプリ名
+- `containerElement` (HTMLElement): 追加先の要素
+
+**備考:** Kintone画面のフォーム配下でも誤って送信されないよう、ボタンは `type="button"` を使用しています。
 
 ### window.UIHelpers
 

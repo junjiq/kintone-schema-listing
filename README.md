@@ -24,7 +24,7 @@ Kintoneアプリケーションのスキーマとデータを検索・表示・�
 ## クイックスタート
 
 ### 1. ファイルの読み込み
-Kintoneアプリの「JavaScript/CSSでカスタマイズ」で以下の順序でファイルを読み込んでください：
+Kintoneアプリの「JavaScript/CSSでカスタマイズ」で以下の順序でファイルを読み込んでください（App名の表示を安定させるため `appCache.js` は先に読み込み推奨）：
 
 ```html
 <!-- 必須ファイル（順序重要） -->
@@ -32,8 +32,8 @@ Kintoneアプリの「JavaScript/CSSでカスタマイズ」で以下の順序�
 <script src="groupFieldProcessor.js"></script>
 <script src="subtableFieldProcessor.js"></script>
 <script src="dataFormatters.js"></script>
-<script src="csvExport.js"></script>
 <script src="appCache.js"></script>
+<script src="csvExport.js"></script>
 <script src="tableHelpers.js"></script>
 <script src="optionDetails.js"></script>
 <script src="messageHelpers.js"></script>
