@@ -251,9 +251,11 @@
 
 
              // オプション詳細
-       const optionCell = document.createElement('td');
-       const optionDetails = window.OptionDetails.generateOptionDetails(field);
-       optionCell.innerHTML = optionDetails;
+      const optionCell = document.createElement('td');
+      const optionDetails = (window.OptionDetails && typeof window.OptionDetails.generateOptionDetails === 'function')
+        ? window.OptionDetails.generateOptionDetails(field)
+        : '';
+      optionCell.innerHTML = optionDetails;
       optionCell.style.border = '1px solid #ddd';
       optionCell.style.padding = '8px';
       optionCell.style.fontSize = '11px';
@@ -325,7 +327,9 @@
 
                      // サブオプション詳細
            const subOptionCell = document.createElement('td');
-           const subOptionDetails = window.OptionDetails.generateOptionDetails(subField);
+           const subOptionDetails = (window.OptionDetails && typeof window.OptionDetails.generateOptionDetails === 'function')
+             ? window.OptionDetails.generateOptionDetails(subField)
+             : '';
            subOptionCell.innerHTML = subOptionDetails;
           subOptionCell.style.border = '1px solid #ddd';
           subOptionCell.style.padding = '8px';
@@ -349,8 +353,10 @@
          // テーブルをコンテナに追加
      containerElement.appendChild(table);
 
-     // リサイズ機能を有効化
-     window.TableHelpers.makeTableResizable(table);
+     // リサイズ機能を有効化（存在チェック）
+     if (window.TableHelpers && typeof window.TableHelpers.makeTableResizable === 'function') {
+       window.TableHelpers.makeTableResizable(table);
+     }
   };
 
   /**
@@ -612,8 +618,10 @@
 
          containerElement.appendChild(table);
 
-     // リサイズ機能を有効化
-     window.TableHelpers.makeTableResizable(table);
+     // リサイズ機能を有効化（存在チェック）
+     if (window.TableHelpers && typeof window.TableHelpers.makeTableResizable === 'function') {
+       window.TableHelpers.makeTableResizable(table);
+     }
   };
 
      // グローバル関数として公開

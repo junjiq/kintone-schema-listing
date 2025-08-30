@@ -5,6 +5,14 @@
    * オプション詳細生成関連の機能
    */
 
+  // App表示名の取得（AppCache API があれば利用）
+  const getAppDisplayName = (appId) => {
+    if (window.AppCache && typeof window.AppCache.getAppDisplayName === 'function') {
+      return window.AppCache.getAppDisplayName(appId);
+    }
+    return `アプリID: ${String(appId)}`;
+  };
+
   /**
    * 関連レコード一覧の条件をフォーマット
    */
@@ -184,10 +192,10 @@
     // 関連レコード一覧フィールドの場合
     else if (fieldType === 'REFERENCE_TABLE') {
       const details = [];
-             if (field.referenceTable && field.referenceTable.relatedApp) {
-         const appDisplayName = window.AppCache ? window.AppCache.getAppDisplayName(field.referenceTable.relatedApp.app) : `アプリID: ${field.referenceTable.relatedApp.app}`;
-         details.push(`関連アプリ: ${appDisplayName}`);
-       }
+      if (field.referenceTable && field.referenceTable.relatedApp) {
+        const appDisplayName = getAppDisplayName(field.referenceTable.relatedApp.app);
+        details.push(`関連アプリ: ${appDisplayName}`);
+      }
       if (field.referenceTable && field.referenceTable.condition) {
         details.push(`条件: ${formatReferenceTableCondition(field.referenceTable.condition)}`);
       }
@@ -207,10 +215,10 @@
     // ルックアップフィールドの場合（lookupプロパティが設定されている場合）
     else if (field.lookup) {
       const details = [];
-             if (field.lookup.relatedApp) {
-         const appDisplayName = window.AppCache ? window.AppCache.getAppDisplayName(field.lookup.relatedApp.app) : `アプリID: ${field.lookup.relatedApp.app}`;
-         details.push(`参照アプリ: ${appDisplayName}`);
-       }
+      if (field.lookup.relatedApp) {
+        const appDisplayName = getAppDisplayName(field.lookup.relatedApp.app);
+        details.push(`参照アプリ: ${appDisplayName}`);
+      }
       if (field.lookup.relatedKeyField) {
         details.push(`参照キー: ${field.lookup.relatedKeyField}`);
       }
@@ -328,10 +336,10 @@
     }
     // 関連レコード一覧フィールドの場合
     else if (fieldType === 'REFERENCE_TABLE') {
-           if (field.referenceTable && field.referenceTable.relatedApp) {
-       const appDisplayName = window.AppCache ? window.AppCache.getAppDisplayName(field.referenceTable.relatedApp.app) : `アプリID: ${field.referenceTable.relatedApp.app}`;
-       details.push(`<strong>関連アプリ:</strong> ${appDisplayName}`);
-     }
+      if (field.referenceTable && field.referenceTable.relatedApp) {
+        const appDisplayName = getAppDisplayName(field.referenceTable.relatedApp.app);
+        details.push(`<strong>関連アプリ:</strong> ${appDisplayName}`);
+      }
       if (field.referenceTable && field.referenceTable.condition) {
         details.push(`<strong>条件:</strong> ${formatReferenceTableCondition(field.referenceTable.condition)}`);
       }
@@ -352,10 +360,10 @@
     }
     // ルックアップフィールドの場合（lookupプロパティが設定されている場合）
     else if (field.lookup) {
-           if (field.lookup.relatedApp) {
-       const appDisplayName = window.AppCache ? window.AppCache.getAppDisplayName(field.lookup.relatedApp.app) : `アプリID: ${field.lookup.relatedApp.app}`;
-       details.push(`<strong>参照アプリ:</strong> ${appDisplayName}`);
-     }
+      if (field.lookup.relatedApp) {
+        const appDisplayName = getAppDisplayName(field.lookup.relatedApp.app);
+        details.push(`<strong>参照アプリ:</strong> ${appDisplayName}`);
+      }
       if (field.lookup.relatedKeyField) {
         details.push(`<strong>参照キー:</strong> ${field.lookup.relatedKeyField}`);
       }

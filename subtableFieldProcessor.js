@@ -7,14 +7,14 @@
    */
 
   /**
-   * アプリ名をキャッシュから取得、なければ「アプリID: [ID]」を返す
+   * アプリ名をキャッシュから取得、なければ「アプリID: [ID]」。
+   * 可能なら AppCache の公開APIに委譲。
    */
   const getAppDisplayName = (appId) => {
-    // UIHelpersのキャッシュを参照
-      if (window.AppCache && window.AppCache.appNameCache && window.AppCache.appNameCache[appId]) {
-    return `${window.AppCache.appNameCache[appId]} (${appId})`;
+    if (window.AppCache && typeof window.AppCache.getAppDisplayName === 'function') {
+      return window.AppCache.getAppDisplayName(appId);
     }
-    return `アプリID: ${appId}`;
+    return `アプリID: ${String(appId)}`;
   };
 
   /**
